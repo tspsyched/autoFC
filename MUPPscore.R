@@ -7,9 +7,9 @@ PAIRS=20 ##Change number of pairs
 P=29  ## number of quadrature points (ONLY advanced users are allowed to change) 
 PS=841  ##square the P (ONLY advanced users are allowed to change) 
 
-Parameters=parameters21 #####
+Parameters=read.csv("Parameters.csv",header=T) #####
 
-Response=read.csv("FinalResponse21.csv",header=T) #####
+Response=read.csv("Response.csv",header=T) #####
 NewResponse=Response[rep(1:nrow(Response),each=PS),] 
 
 prior=t(t(seq(-3.5,3.5,.25)))
