@@ -14,305 +14,199 @@
 # 
 # cal_block_energy(rb, item_df, weights = c(-1,-1,3,-1), fac = 3)
 
-### Deprecated. Calculating energy for every pair of items is space demanding when we want >2 items per block.
-### Hence there is even no need for energy matrix.
 
 
-#' Building a random block as the initial solution for SA algorithm.
-#' 
-#' @description \code {make_random_block()} Given a set of numbers, randomly pick some (or all) or them
-#' and build blocks each with `item_per_block` items.
-#' If `target_items` is not a multiple of `item_per_block`, random duplicate items in the set of used items are filled.
-#' 
-#' @param total_items Number of items to choose from
-#' @param target_items Number of items used for building item blocks. Default as equal to `total_items`.
-#' @param item_per_block Number of items for each block.
-#'
-#' @return A list of paired item blocks (list) each with `item_per_block` integers.
-#' @export
-#'
-#' @examples
-#' {
-#'    make_random_block(total_items = 90, target_items = 45, item_per_block = 3)
-#' }
-#' 
+
+#### Produce a number of randomly sampled blocks of items in a matrix format. Can also accommodate cases when # of items used is not a multiple of the # of items per block.
+#### Can be used as initial solution for the automatic pairing functions.
+### Input:
+## total_items - How many items do we sample from?
+## target_items - How many items do we sample to build item blocks?
+## item_per_block - How many items will there be in each block?
+
+## Note: If target_items is no a multiple of item_per_block, the item set produced by target_items will be looped until # of sampled items becomes a multiple of item_per_block.
+
 make_random_block <- function(total_items, target_items = total_items, item_per_block) {
+  if (target_items > total_items) {
+     stop("Number of target items should not be larger than number of total items")
+  }
+  if (target_items <= 0) {
+     stop("Number of target items should be larger than 0")
+  }
   item_indices <- sample(seq(1:total_items), target_items)
-  item_blocks <- list()
   if (target_items %% item_per_block == 0) {
-     i <- 1
-     while (i < target_items) {
-       item_blocks <- c(list(item_indices[i:(i+item_per_block-1)]), item_blocks)
-       i <- i + item_per_block
-     }
+    # If it is a multiple, return a matrix of item numbers.
+    return(matrix(item_indices, ncol = item_per_block, byrow = TRUE))
   }
   else {
+    # Otherwise, append the list of selected items until # of items is a multiple of item_per_block
     item_indices <- c(item_indices, item_indices[1:(item_per_block - (target_items %% item_per_block))])
-    i <- 1
-    while (i < target_items) {
-      item_blocks <- c(list(item_indices[i:(i+item_per_block-1)]), item_blocks)
-      i <- i + item_per_block
-    }
+    return(matrix(item_indices, ncol = item_per_block, byrow = TRUE))
   }
-  return(item_blocks)
   
 }
 
 
 
-#' Given an item block, calculate its relative energy/benefit.
-#' 
-#' @description \code Invoked within `sa_pairing_generalized` for calculating the energy (engergy). Can also be used
-#' separately for calculating the energy of a certain paired block, given item characteristics.
-#' 
-#' @param block A list of item blocks (list) produced by `make_random_block` or when running the SA algorithm.
-#' @param item_chars Item characteristics, where each row represents an item. Should contain one column for item dimensionality.
-#' @param weights Weights assigned to each item characteristic (column).
-#' @param fac Which of the columns denotes item dimensionality?
-#' @param FUN Function for calculating item energy within a block of items. Default to var().
-#'
-#' @return The total energy/benefit of the whole block.
-#' @examples
-#' {
-#'    make_random_block(total_items = 90, target_items = 45, item_per_block = 3)
-#' }
-#' 
-cal_block_energy <- function(block, item_chars, weights, fac, FUN = var) {
-    indices <- seq(1:ncol(item_chars))
-    indices <- indices[!indices %in% fac]
-    energy <- 0
-    for (b in block) {
-       for (i in indices) {
-          energy <- energy + weights[i] * FUN(item_chars[unlist(b), i])
-       }
-       item_dims <- item_chars[unlist(b), fac]
-       energy <- energy + weights[fac] * ifelse(length(item_dims) == length(unique(item_dims)), 1, 0)
-    }
 
-    return(energy)
+#### Produce the "Energy" of a set of item blocks, given all the item characteristics of all items, weights for each characteristic, and a customized function to optimize the characteristics within each block.
+#### This serves as the core function for determining the acceptance or rejection of a newly built block over the previous one.
+### Input:
+## block - An nxk integer matrix, where n is the number of item blocks and k is the number of items per block.
+## item_chars - An mxr matrix, where m is the total number of items to sample from (Whether it is included in the block or not. Hence we have m >= nxk) and r is the number of item characteristics. These can include:
+##   Social desirability score; Item dimensionality (Which factor this item loads on); Factor loading; Item difficulty; Reverse coding information, etc.
+## weights - A vector of length r with weights for each item characteristics in item_chars. Should provide a weight of 0 for specific characteristics if the item characteristics in the corresponding positions are not of interest (Such as ID).
+## FUN - A list of customized function for optimizing each item characteristic within each block. 
+
+## target_items - How many items do we sample to build item blocks?
+## item_per_block - How many items will there be in each block?
+cal_block_energy <- function(block, item_chars, weights, FUN) {
+  indices <- seq(1:ncol(item_chars))
+  energy <- 0
+  
+  # Apply separate functions for each item characteristic to get an estimate of energy, then sum this up.
+  for (row in seq(1:nrow(block))) {
+    for (i in indices) {
+      fun_i <- as.character(quote(FUN[i]))
+      energy <- energy + weights[i] * eval(call(fun_i, item_chars[block[row,], i]))
+    }
+  }
+  return(energy)
 }
 
+#### An extension of the cal_block_energy function with consideration of inter item agreement metrics.
+#### This serves as the core function for determining the acceptance or rejection of a newly built block over the previous one.
+### Input:
+## rater_chars - A pxm numeric matrix with scores of each of the p participants for the m items.
+## iia_weights - Weights for the four IIAs discussed in Pavlov et el. (Under review)
+## verbose - Logical; Do we report IIAs each time we invoke this function?
 
-cal_block_energy_with_irr <- function(block, item_chars, weights, fac, FUN = var, rater_chars, 
-                                      irr_weights = c(BPlin = 1, BPquad = 1, AClin = 1, ACquad = 1),
+
+cal_block_energy_with_iia <- function(block, item_chars, weights, FUN, rater_chars, 
+                                      iia_weights = c(BPlin = 1, BPquad = 1, AClin = 1, ACquad = 1),
                                       verbose = FALSE) {
   indices <- seq(1:ncol(item_chars))
-  indices <- indices[!indices %in% fac]
   energy <- 0
-  for (b in block) {
+  
+  # Apply separate functions for each item characteristic to get an estimate of energy, then sum this up.
+  for (row in seq(1:nrow(block))) {
     for (i in indices) {
-      energy <- energy + weights[i] * FUN(item_chars[unlist(b), i])
+      fun_i <- as.character(quote(FUN[i]))
+      energy <- energy + weights[i] * eval(call(fun_i, item_chars[block[row,], i]))
     }
-    item_dims <- item_chars[unlist(b), fac]
-    energy <- energy + weights[fac] * ifelse(length(item_dims) == length(unique(item_dims)), 1, 0)
-    selected_item <- rater_chars[,b]
+  # Then we add up IIA metrics.
+    selected_item <- rater_chars[,block[row,]]
     BPlin <- bp.coeff.raw(selected_item, weights = "linear")$est[,4]
     BPquad <- bp.coeff.raw(selected_item, weights = "quadratic")$est[,4]
     AClin <- gwet.ac1.raw(selected_item, weights = "linear")$est[,4]
     ACquad <- gwet.ac1.raw(selected_item, weights = "quadratic")$est[,4]
-    irr_energy <- irr_weights %*% c(BPlin, BPquad, AClin, ACquad)
+    iia_energy <- iia_weights %*% c(BPlin, BPquad, AClin, ACquad)
     if (verbose == TRUE) {
       print(sprintf("BPlin: %f, BPquad: %f, AClin: %f, ACquad: %f", BPlin, BPquad, AClin, ACquad))
     }
-    energy <- energy + irr_energy
-  
+    energy <- energy + iia_energy
+    
   }
-
-  
   return(energy)
 }
 
-## TODO Allow lower energy to be considered desirable.
-sa_pairing_generalized <- function(block, total_items, Temperature, r = 0.999, 
-                       item_chars, weights, fac, FUN = var) {
-   # TODO implement the pairing function
-   # Pick two blocks and randomly exchange their items (If all items are used)
-   # Pick an unused item and replace one of the used items or exchange items (If not all items are used)
-   # Change of energy is the energy of two new blocks minus the energy of two old blocks 
-   block0 <- block
-   energy0 <- cal_block_energy(block, item_chars, weights, fac, FUN)
-   energy <- energy0
 
-   if (missing(Temperature)) {
-     Temperature <- 10 * abs(energy0)
-   }
-   T0 <- Temperature
-   # How do we know that all items are used?
-   all_item_used <- length(unique(unlist(block))) == total_items
-   
-   if (all_item_used) {
-     while (Temperature > 10^(-6) * T0) {
-        sample_index <- sample(1:length(block),2)
-        sample_block <- block[sample_index]
-        sample_energy <- cal_block_energy(sample_block, item_chars, weights, fac, FUN)
-      
-        sample_items <- unlist(sample_block)
-        l <- length(sample_items)
-      
-        exchanged_items <- sample(sample_items,length(sample_items))
-        exchanged_block <- c(list(exchanged_items[1:(l/2)]),
-                           list(exchanged_items[(l/2+1):l]))
-      
-        exchanged_energy <- cal_block_energy(exchanged_block, item_chars, weights, fac, FUN)
-      
-        if (exchanged_energy >= sample_energy) {
-          block[sample_index[1]] <- exchanged_block[1]
-          block[sample_index[2]] <- exchanged_block[2]
-          energy <- energy + exchanged_energy - sample_energy
-        }
-        else if (exp((exchanged_energy - sample_energy)/Temperature) > runif(1)) {
-          block[sample_index[1]] <- exchanged_block[1]
-          block[sample_index[2]] <- exchanged_block[2]
-          energy <- energy + exchanged_energy - sample_energy
-        }
-        else {
-          ### No need to do anything.
-        }
-        Temperature <- Temperature * r
-     }
-   }
-   else {
-     eta <- length(unique(unlist(block))) / total_items
-     Temperature <- Temperature * eta
-     while (Temperature > 10^(-6) * T0) {
-       if (-1*eta^2+eta > runif(1)) {
-         ### Pick a new item
-         unused_items <- setdiff(seq(1:total_items), unlist(block))
-         sample_index <- sample(1:length(block),1)
-         sample_block <- block[sample_index]
-         sample_energy <- cal_block_energy(sample_block, item_chars, weights, fac, FUN)
-         
-         picked_item <- sample(unused_items, 1)
-         exchanged_block <- unlist(sample_block)
-         exchanged_block[1] <- picked_item
-         exchanged_block <- list(exchanged_block)
-         exchanged_energy <- cal_block_energy(exchanged_block, item_chars, weights, fac, FUN)
-         
-         if (exchanged_energy >= sample_energy) {
-           block[sample_index[1]] <- exchanged_block
-           energy <- energy + exchanged_energy - sample_energy
-         }
-         else if (exp((exchanged_energy - sample_energy)/Temperature) > runif(1)) {
-           block[sample_index[1]] <- exchanged_block
-           energy <- energy + exchanged_energy - sample_energy
-         }
-         else {
-           ### No need to do anything.  
-         }         
-         Temperature <- Temperature * r
-       }
-       else {
-         ### Change items for two blocks
-         sample_index <- sample(1:length(block),2)
-         sample_block <- block[sample_index]
-         sample_energy <- cal_block_energy(sample_block, item_chars, weights, fac, FUN)
-         
-         sample_items <- unlist(sample_block)
-         l <- length(sample_items)
-         
-         exchanged_items <- sample(sample_items,length(sample_items))
-         exchanged_block <- c(list(exchanged_items[1:(l/2)]),
-                              list(exchanged_items[(l/2+1):l]))
-         
-         exchanged_energy <- cal_block_energy(exchanged_block, item_chars, weights, fac, FUN)
-         
-         if (exchanged_energy >= sample_energy) {
-           block[sample_index[1]] <- exchanged_block[1]
-           block[sample_index[2]] <- exchanged_block[2]
-           energy <- energy + exchanged_energy - sample_energy
-         }
-         else if (exp((exchanged_energy - sample_energy)/Temperature) > runif(1)) {
-           block[sample_index[1]] <- exchanged_block[1]
-           block[sample_index[2]] <- exchanged_block[2]
-           energy <- energy + exchanged_energy - sample_energy
-         }
-         else {
-           ### No need to do anything.  
-         }
-         Temperature <- Temperature * r
-       }
-     }
-   }
-   return(list(block_initial = block0, energy_initial = energy0, block_final = block, energy_final = energy))
-}
 
-sa_pairing_generalized_with_irr <- function(block, total_items, Temperature, r = 0.999, 
-                                   item_chars, weights, fac, FUN = var,
-                                   rater_chars, irr_weights = c(BPlin = 1, BPquad = 1, AClin = 1, ACquad = 1)) {
-  # TODO implement the pairing function
-  # Pick two blocks and randomly exchange their items (If all items are used)
-  # Pick an unused item and replace one of the used items or exchange items (If not all items are used)
-  # Change of energy is the energy of two new blocks minus the energy of two old blocks 
+#### Automatic item pairing function based on simulated annealing algorithm, which allows the simlutaneous optimization of any numbers of item characteristics.
+#### This serves as the core function for determining the acceptance or rejection of a newly built block over the previous one.
+### Input:
+## block - An nxk integer matrix, where n is the number of item blocks and k is the number of items per block.
+## total_items - How many items do we sample from? If number of unique items in the block matrix is smaller than this number, then randomly choose from picking a new item or swapping items in blocks.
+## Temperature - Controls the initial temperature of the algorithm. Can be left blank and determined by the initial energy of the input block, determined by a factor of eta_Temperature.
+## r - Cooling factor for the temperature
+## end_criteria - The destination temperature proportional to the initial designated Temperature.
+## item_chars, weights, fac, FUN - Use ?cal_block_energy for details.
+
+
+sa_pairing_generalized <- function(block, total_items, Temperature, eta_Temperature = 0.01, r = 0.999, end_criteria = 10^(-6),
+                                   item_chars, weights, FUN) {
+  
+  # Store initial block of items and the corresponding energy.
   block0 <- block
-  energy0 <- cal_block_energy_with_irr(block, item_chars, weights, fac, FUN, 
-                                       rater_chars, irr_weights)
+  energy0 <- cal_block_energy(block, item_chars, weights, FUN)
   energy <- energy0
   
+  # Provide initial temperature value if it is not given, then store the initial temperature.
   if (missing(Temperature)) {
-    Temperature <- 10 * abs(energy0)
+    Temperature <- eta_Temperature * abs(energy0)
   }
   T0 <- Temperature
-  # How do we know that all items are used?
-  all_item_used <- length(unique(unlist(block))) == total_items
   
+  
+  # How do we know that all items are used?
+  all_item_used <- length(unique(block)) == total_items
+  
+  
+  # When we see that all items are used......
   if (all_item_used) {
-    while (Temperature > 10^(-6) * T0) {
-      sample_index <- sample(1:length(block),2)
-      sample_block <- block[sample_index]
-      sample_energy <- cal_block_energy_with_irr(sample_block, item_chars, weights, fac, FUN, 
-                                                 rater_chars, irr_weights)
+    while (Temperature > end_criteria * T0) {
+      # 1. We randomly pick two blocks then calculate the total energy for these two blocks first.
+      sample_index <- sample(1:nrow(block),2)
+      sample_block <- block[sample_index,]
+      sample_energy <- cal_block_energy(sample_block, item_chars, weights, FUN)
       
-      sample_items <- unlist(sample_block)
-      l <- length(sample_items)
+      l <- length(sample_block)
       
-      exchanged_items <- sample(sample_items,length(sample_items))
-      exchanged_block <- c(list(exchanged_items[1:(l/2)]),
-                           list(exchanged_items[(l/2+1):l]))
+      # 2, Then we randomly shuffle items in these two blocks and calculate the energy again.
+      exchanged_items <- sample(sample_block,l)
+      exchanged_block <- matrix(c(exchanged_items[1:(l/2)], exchanged_items[(l/2+1):l]), nrow = 2)
+      exchanged_energy <- cal_block_energy(exchanged_block, item_chars, weights, FUN)
       
-      exchanged_energy <- cal_block_energy_with_irr(exchanged_block, item_chars, weights, fac, FUN, 
-                                                    rater_chars, irr_weights)
       
+      # 3. If the new energy is higher, then we replace these two blocks with shuffled ones, and update the energy.
       if (exchanged_energy >= sample_energy) {
-        block[sample_index[1]] <- exchanged_block[1]
-        block[sample_index[2]] <- exchanged_block[2]
+        # print("Accept better solutions")
+        block[sample_index[1],] <- exchanged_block[1,]
+        block[sample_index[2],] <- exchanged_block[2,]
         energy <- energy + exchanged_energy - sample_energy
       }
+      # 4. Else, we accept the inferior solution with a (Potentially small) probability.
       else if (exp((exchanged_energy - sample_energy)/Temperature) > runif(1)) {
-        block[sample_index[1]] <- exchanged_block[1]
-        block[sample_index[2]] <- exchanged_block[2]
+        # print("Accept Conditionally")
+        block[sample_index[1],] <- exchanged_block[1,]
+        block[sample_index[2],] <- exchanged_block[2,]
         energy <- energy + exchanged_energy - sample_energy
       }
       else {
+        # print("Reject")
         ### No need to do anything.
       }
+      # 5. Finally we update the temperature.
       Temperature <- Temperature * r
     }
   }
+  # Otherwise...
   else {
-    print("It's here")
-    eta <- length(unique(unlist(block))) / total_items
+    # 1. We first see proportion of items that are unused.
+    eta <- length(unique(block)) / total_items
     Temperature <- Temperature * eta
-    while (Temperature > 10^(-6) * T0) {
+    while (Temperature > end_criteria * T0) {
+    # 2. Choice of which method to use is determined by that proportion.
       if (-1*eta^2+eta > runif(1)) {
-        ### Pick a new item
-        unused_items <- setdiff(seq(1:total_items), unlist(block))
-        sample_index <- sample(1:length(block),1)
-        sample_block <- block[sample_index]
-        sample_energy <- cal_block_energy_with_irr(sample_block, item_chars, weights, fac, FUN, 
-                                                   rater_chars, irr_weights)
-        picked_item <- sample(unused_items, 1)
-        exchanged_block <- unlist(sample_block)
-        exchanged_block[1] <- picked_item
-        exchanged_block <- list(exchanged_block)
-        exchanged_energy <- cal_block_energy_with_irr(exchanged_block, item_chars, weights, fac, FUN, 
-                                                      rater_chars, irr_weights)
+        # 2.1 Pick an unused item and a block. Calculate the energy for this block.
+        unused_items <- setdiff(seq(1:total_items), block)
+        sample_index <- sample(nrow(block),1)
+        sample_block <- block[sample_index,]
+        sample_energy <- cal_block_energy(sample_block, item_chars, weights, FUN)
         
+        # 2.2 Replace the first item in this block with this unused item. Calculate the energy for the block with item replaced.
+        picked_item <- sample(unused_items, 1)
+        exchanged_block <- sample_block
+        exchanged_block[1] <- picked_item
+        exchanged_energy <- cal_block_energy(exchanged_block, item_chars, weights, FUN)
+        
+        # 2.3 Determine whether the new block is accepted or rejected as is done above.
         if (exchanged_energy >= sample_energy) {
-          block[sample_index[1]] <- exchanged_block
+          block[sample_index[1],] <- exchanged_block
           energy <- energy + exchanged_energy - sample_energy
         }
         else if (exp((exchanged_energy - sample_energy)/Temperature) > runif(1)) {
-          block[sample_index[1]] <- exchanged_block
+          block[sample_index[1],] <- exchanged_block
           energy <- energy + exchanged_energy - sample_energy
         }
         else {
@@ -321,30 +215,171 @@ sa_pairing_generalized_with_irr <- function(block, total_items, Temperature, r =
         Temperature <- Temperature * r
       }
       else {
-        ### Change items for two blocks
-        sample_index <- sample(1:length(block),2)
-        sample_block <- block[sample_index]
-        sample_energy <- cal_block_energy_with_irr(sample_block, item_chars, weights, fac, FUN, 
-                                                   rater_chars, irr_weights)
+        # 2.4 Or we pick two blocks and exchange their items, like what is done when all items are used.
+        sample_index <- sample(1:nrow(block),2)
+        sample_block <- block[sample_index,]
+        sample_energy <- cal_block_energy(sample_block, item_chars, weights, FUN)
         
-        sample_items <- unlist(sample_block)
-        l <- length(sample_items)
+        l <- length(sample_block)
         
-        exchanged_items <- sample(sample_items,length(sample_items))
-        exchanged_block <- c(list(exchanged_items[1:(l/2)]),
-                             list(exchanged_items[(l/2+1):l]))
+        exchanged_items <- sample(sample_block,l)
+        exchanged_block <- matrix(c(exchanged_items[1:(l/2)], exchanged_items[(l/2+1):l]), nrow = 2)
         
-        exchanged_energy <- cal_block_energy_with_irr(exchanged_block, item_chars, weights, fac, FUN, 
-                                                      rater_chars, irr_weights)
+        exchanged_energy <- cal_block_energy(exchanged_block, item_chars, weights, FUN)
         
         if (exchanged_energy >= sample_energy) {
-          block[sample_index[1]] <- exchanged_block[1]
-          block[sample_index[2]] <- exchanged_block[2]
+          block[sample_index[1],] <- exchanged_block[1,]
+          block[sample_index[2],] <- exchanged_block[2,]
           energy <- energy + exchanged_energy - sample_energy
         }
         else if (exp((exchanged_energy - sample_energy)/Temperature) > runif(1)) {
-          block[sample_index[1]] <- exchanged_block[1]
-          block[sample_index[2]] <- exchanged_block[2]
+          block[sample_index[1],] <- exchanged_block[1,]
+          block[sample_index[2],] <- exchanged_block[2,]
+          energy <- energy + exchanged_energy - sample_energy
+        }
+        else {
+          ### No need to do anything.  
+        }
+        Temperature <- Temperature * r
+      }
+    }
+  }
+  return(list(block_initial = block0, energy_initial = energy0, block_final = block, energy_final = energy))
+}
+
+
+
+#### Automatic item pairing function based on simulated annealing algorithm, which allows the simlutaneous optimization of any numbers of item characteristics, including inter item agreement (IIA) metrics.
+#### This serves as the core function for determining the acceptance or rejection of a newly built block over the previous one.
+### Input:
+## block - An nxk integer matrix, where n is the number of item blocks and k is the number of items per block.
+## total_items - How many items do we sample from? If number of unique items in the block matrix is smaller than this number, then randomly choose from picking a new item or swapping items in blocks.
+## Temperature - Controls the initial temperature of the algorithm. Can be left blank and determined by the initial energy of the input block, determined by a factor of eta_Temperature.
+## r - Cooling factor for the temperature
+## end_criteria - The destination temperature proportional to the initial designated Temperature.
+## item_chars, weights, fac, FUN - Use ?cal_block_energy for details.
+## rater_chars - A pxm numeric matrix with scores of each of the p participants for the m items.
+## iia_weights - Weights for the four IIAs discussed in Pavlov et el. (Under review)
+
+
+
+sa_pairing_generalized_with_iia <- function(block, total_items, Temperature, r = 0.999, eta_Temperature = 0.01, end_criteria = 10^(-6),
+                                            item_chars, weights, FUN,
+                                            rater_chars, iia_weights = c(BPlin = 1, BPquad = 1, AClin = 1, ACquad = 1)) {
+
+  # Store initial block of items and the corresponding energy.
+  block0 <- block
+  energy0 <- cal_block_energy(block, item_chars, weights, FUN)
+  energy <- energy0
+  
+  # Provide initial temperature value if it is not given, then store the initial temperature.
+  if (missing(Temperature)) {
+    Temperature <- eta_Temperature * abs(energy0)
+  }
+  T0 <- Temperature
+  
+  # How do we know that all items are used?
+  all_item_used <- length(unique(block)) == total_items
+  
+  # When we see that all items are used......  
+  if (all_item_used) {
+    while (Temperature > end_criteria * T0) {
+      
+      # 1. We randomly pick two blocks then calculate the total energy for these two blocks first.
+      
+
+      sample_index <- sample(1:nrow(block),2)
+      sample_block <- block[sample_index,]
+      sample_energy <- cal_block_energy_with_iia(sample_block, item_chars, weights, FUN,
+                                                 rater_chars, iia_weights)
+      
+      l <- length(sample_block)
+      
+      # 2, Then we randomly shuffle items in these two blocks and calculate the energy again.      
+      exchanged_items <- sample(sample_block,l)
+      exchanged_block <- matrix(c(exchanged_items[1:(l/2)], exchanged_items[(l/2+1):l]), nrow = 2)
+      
+      exchanged_energy <- cal_block_energy_with_iia(exchanged_block, item_chars, weights, FUN, 
+                                                    rater_chars, iia_weights)
+      
+      # 3. Now we decide whether we accept the better solution, or sometimes accept an inferior one.
+      if (exchanged_energy >= sample_energy) {
+        # print("Accept better solutions")
+        block[sample_index[1],] <- exchanged_block[1,]
+        block[sample_index[2],] <- exchanged_block[2,]
+        energy <- energy + exchanged_energy - sample_energy
+      }
+      else if (exp((exchanged_energy - sample_energy)/Temperature) > runif(1)) {
+        # print("Accept Conditionally")
+        block[sample_index[1],] <- exchanged_block[1,]
+        block[sample_index[2],] <- exchanged_block[2,]
+        energy <- energy + exchanged_energy - sample_energy
+      }
+      else {
+        # print("Fuck off!")
+        ### No need to do anything.
+      }
+      Temperature <- Temperature * r
+    }
+  }
+  # Otherwise...
+  else {
+    eta <- length(unique(block)) / total_items
+    Temperature <- Temperature * eta
+    while (Temperature > end_criteria * T0) {
+      # Randomly select one of the two strategies based on eta.
+      if (-1*eta^2+eta > runif(1)) {
+        ### Pick an unused item and a block, then calculate the energy for this block.
+        unused_items <- setdiff(seq(1:total_items), block)
+        sample_index <- sample(nrow(block),1)
+        sample_block <- block[sample_index,]
+        sample_energy <- cal_block_energy_with_iia(sample_block, item_chars, weights, FUN,
+                                                   rater_chars, iia_weights)
+        
+        picked_item <- sample(unused_items, 1)
+        
+        ### Replace the first item in the picked block with the new item, then calculate the energy for the new block.
+        exchanged_block <- sample_block
+        exchanged_block[1] <- picked_item
+        exchanged_energy <- cal_block_energy_with_iia(exchanged_block, item_chars, weights, FUN,
+                                                      rater_chars, iia_weights)
+        
+        ## Then we determine the acceptance or rejection of solution based on the value of new energy.
+        if (exchanged_energy >= sample_energy) {
+          block[sample_index[1],] <- exchanged_block
+          energy <- energy + exchanged_energy - sample_energy
+        }
+        else if (exp((exchanged_energy - sample_energy)/Temperature) > runif(1)) {
+          block[sample_index[1],] <- exchanged_block
+          energy <- energy + exchanged_energy - sample_energy
+        }
+        else {
+          ### No need to do anything.  
+        }         
+        Temperature <- Temperature * r
+      }
+      else {
+        ### Change items for two blocks, which is essentially the same as in the automatic pairing function without IIA.
+        sample_index <- sample(1:nrow(block),2)
+        sample_block <- block[sample_index,]
+        sample_energy <- cal_block_energy(sample_block, item_chars, weights, FUN)
+        
+        l <- length(sample_block)
+        
+        exchanged_items <- sample(sample_block,l)
+        exchanged_block <- matrix(c(exchanged_items[1:(l/2)], exchanged_items[(l/2+1):l]), nrow = 2)
+        
+        exchanged_energy <- cal_block_energy_with_iia(exchanged_block, item_chars, weights, FUN, 
+                                                      rater_chars, iia_weights)
+        
+        if (exchanged_energy >= sample_energy) {
+          block[sample_index[1],] <- exchanged_block[1,]
+          block[sample_index[2],] <- exchanged_block[2,]
+          energy <- energy + exchanged_energy - sample_energy
+        }
+        else if (exp((exchanged_energy - sample_energy)/Temperature) > runif(1)) {
+          block[sample_index[1],] <- exchanged_block[1,]
+          block[sample_index[2],] <- exchanged_block[2,]
           energy <- energy + exchanged_energy - sample_energy
         }
         else {
@@ -360,13 +395,46 @@ sa_pairing_generalized_with_irr <- function(block, total_items, Temperature, r =
 
 
 
-# t <- sa_pairing_generalized(rb, 4, item_chars = item_df, weights = c(-1, -1, 10, -1), fac = 3)
-# 
-# 
-# t$block_final
-# t$energy_final
-# t$energy_initial
-# for (block in t$block_final) {
-#    print(item_df[unlist(block),3])
-# }
+
+#### Other helper functions to help print out informative results for the paired scale.
+
+#### Prints iia metrics for select items
+### Inputs:
+
+## block - An nxk integer matrix, where n is the number of item blocks and k is the number of items per block.
+## data - A pxm numeric matrix with scores of each of the p participants for the m items.
+
+get_item_consistency <- function(block, data) {
+  results <- cbind(BPlin = c(), BPquad = c(), AClin = c(), ACquan = c())
+  for (i in seq(1:nrow(block))) {
+    selected_item <- data[,block[i,]]
+    BPlin <- bp.coeff.raw(selected_item, weights = "linear")$est[,4]
+    BPquad <- bp.coeff.raw(selected_item, weights = "quadratic")$est[,4]
+    AClin <- gwet.ac1.raw(selected_item, weights = "linear")$est[,4]
+    ACquad <- gwet.ac1.raw(selected_item, weights = "quadratic")$est[,4]
+    results <- rbind(results, c(BPlin = BPlin, BPquad = BPquad, AClin = AClin, ACquad = ACquad))
+  }
+  return(results)
+}
+
+
+#### Prints summary statistics (Mean and SD) of IIAs for all paired blocks in a scale.
+### Inputs:
+
+## ic - An IIA matrix produced by get_item_consistency().
+
+
+get_block_iia_summary <- function(ic) {
+  mean_summary <- colMeans(ic)
+  sd_summary <- apply(ic, 2, sd)
+  return(c(Mean1 = mean_summary[1], Mean2 = mean_summary[2],
+           Mean3 = mean_summary[3], Mean4 = mean_summary[4],
+           SD1 = sd_summary[1], SD2 = sd_summary[2],
+           SD3 = sd_summary[3], SD4 = sd_summary[4]))
+}
+
+
+
+
+
 
