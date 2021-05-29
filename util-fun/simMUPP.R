@@ -4,6 +4,10 @@ library(roperators)
 library(data.table)
 library(utils)
 
+#load mupp dependencies
+devtools::install_github("swnydick/mupp")
+library(mupp)
+
 # Simulate MUPP Parameters
 
 simulate_mupp_params <- function(n_persons     = 1,
