@@ -1,10 +1,4 @@
 exportPattern("^[[:alpha:]]+")
 importFrom("stats","runif")
-importFrom("stats", "as.formula", "reshape", "setNames","dnorm","rnorm")
-importFrom("utils", "head", "tail", "type.convert","modifyList")
 
 importFrom("irrCAC", "bp.coeff.raw","gwet.ac1.raw")
-importFrom("extraDistr", "rnsbeta", "dnsbeta")
-import(roperators)
-import(magrittr)
-import(data.table)
