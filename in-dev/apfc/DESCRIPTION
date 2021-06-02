@@ -1,0 +1,16 @@
+Package: apfc
+Type: Package
+Title: Automatic Construction of Forced-Choice Tests
+Version: 0.1.0
+Author: c(
+  person("Mengtong", "Li", email = "ml70@illinois.edu", role = c("cre", "aut")),
+  person("Tianjun", "Sun", email = "tsun5@illinois.edu", role = "aut"),
+  person("Bo", "Zhang", email = "bozhang3065@gmail.com", role = "aut"))
+Maintainer: Mengtong Li <ml70@illinois.edu>
+Description: Forced-choice response format has been widely used for preventing response biases such as socially desirable responding (SDR), by balancing or matching items in terms of their characteristics such as perceived desirability. Although such matching techniques are already used for forced-choice test construction, these techniques rely on manual item matching or can only accommodate matching of item pairs, and fall far short when items need to be matched on multiple characteristics, when each pair contains more than two items, or when the total number of items to pair is very large. To address these limitations, we developed an automatic item matching package where users are allowed to match items on any number of item characteristics simultaneously, using any criteria to evaluate the goodness of matching, including mean difference, variance or inter-item agreement (IIA) metrics.
+Imports: irrCAC
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+NeedsCompilation: no
+Packaged: 2021-05-26 13:19:09 UTC; LENOVO

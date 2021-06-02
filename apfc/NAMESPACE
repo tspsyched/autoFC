@@ -1,4 +1,0 @@
-exportPattern("^[[:alpha:]]+")
-importFrom("stats","runif")
-
-import(irrCAC)
