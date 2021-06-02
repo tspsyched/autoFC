@@ -17,6 +17,19 @@ The R package __autoFC__ is developed to address these difficulties and provides
 
 Users are allowed to create an FC test of any block size (e.g. Pairs, Triplets, Quadruplets).
 
+## Installation
+
+You can install autoFC from CRAN:
+
+``` r
+install.packages("autoFC")
+```
+
+You can install the development version of autoFC from GitHub:
+
+``` r
+devtools::install_github("tspsyched/autoFC")
+```
 
 ## Functions
 
