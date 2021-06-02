@@ -1,0 +1,4 @@
+exportPattern("^[[:alpha:]]+")
+importFrom("stats","runif")
+
+importFrom("irrCAC", "bp.coeff.raw","gwet.ac1.raw")
