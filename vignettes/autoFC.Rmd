@@ -7,9 +7,10 @@ output:
   pdf_document:
     toc: TRUE
 vignette: >
-  %\VignetteEncoding{UTF-8}
   %\VignetteIndexEntry{autoFC: An R Package for Automatic Item Pairing in Forced-Choice Test Construction}
   %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+  \usepackage[utf8]{inputenc}
 ---
 
 ```{r, include = FALSE}
@@ -70,11 +71,12 @@ Below is a brief explanation of all functions provided by __autoFC__. Details an
 In this tutorial, we suppose that 60 5-Point Likert items measuring Big Five traits, each with a certain item location, are used to build a FC scale with block size 3. We also simulate responses from 1,000 participants for the 60 items on their social desirability. 
 ```{r}
 set.seed(2021)
-# Simulation of 1,000 respondents on 60 items. A better simulation should be consisting of responses produced by specific IRT parameters.
-s1 <- sample(seq(1:5), 600*60, replace = TRUE, 
+# Simulation of 1,000 respondents on 60 items. A better simulation should be
+# consisting of responses produced by specific IRT parameters.
+s1 <- sample(seq(1:5), 500*60, replace = TRUE, 
                                 prob = c(0.10, 0.15, 0.20, 0.25, 0.30))
-s2 <- sample(seq(1:5), 400*60, replace = TRUE, 
-                                prob = c(0.20, 0.20, 0.30, 0.15, 0.15))
+s2 <- sample(seq(1:5), 500*60, replace = TRUE, 
+                                prob = c(0.50, 0.10, 0.10, 0.15, 0.15))
 
 item_responses <- matrix(c(s1, s2), ncol = 60)
 
@@ -85,6 +87,8 @@ item_difficulty <- runif(60, -1, 1)
 
 # Then we build a data frame with item characteristics
 item_chars <- data.frame(DIM = item_dims, SD_Mean = item_mean, DIFF = item_difficulty)
+
+char_weights = c(1, -1, -3)
 ```
 
 ### Step 2: Construct an initial solution
@@ -92,50 +96,55 @@ item_chars <- data.frame(DIM = item_dims, SD_Mean = item_mean, DIFF = item_diffi
 Next, we build a random FC scale using the 60 items with block size 3. You can see from `initial_FC` that now all 60 items are divided into 20 triplets.
 ```{r}
 initial_FC <- make_random_block(total_items = 60, item_per_block = 3)
-print(initial_FC)
+knitr::kable(initial_FC)
 ```
 
 Also let's see the how the item characteristics look like for each of the 20 triplets. 
 
 First, the underlying latent traits. We see that there are some cases where two items measuring the same traits appear in the same block, which is something we want to avoid.
 ```{r}
-print(matrix(item_chars$DIM[initial_FC], ncol = 3))
+knitr::kable(matrix(item_chars$DIM[t(initial_FC)], ncol = 3, byrow = TRUE))
 ```
 
-Then, scores on social desirability. We do see many cases where items differ in their social desirability on a magnitude of 0.7-0.8 on a 5-point scale, within a block. That's not good.
+Then, scores on social desirability. We do see many cases where items differ in their social desirability on a magnitude of >1 on a 5-point scale, within a block. That's not good.
 ```{r}
-sd_initial <- matrix(item_chars$SD_Mean[initial_FC], ncol = 3)
-print(sd_initial)
+sd_initial <- matrix(item_chars$SD_Mean[t(initial_FC)], ncol = 3, byrow = TRUE)
+knitr::kable(sd_initial)
 ```
 
-Lastly, item difficulty. We also see that item difficulties within a block are even less consistent.
+Lastly, item difficulty. We also see that item difficulties within a block are also inconsistent.
 ```{r}
-diff_initial <- matrix(item_chars$DIFF[initial_FC], ncol = 3)
-print(diff_initial)
+diff_initial <- matrix(item_chars$DIFF[t(initial_FC)], ncol = 3, byrow = TRUE)
+knitr::kable(diff_initial)
 ```
 
 ### Step 3: Calculate the energy for the initial FC scale, without and with IIAs
 
-Next we calculate the energy for `initial_FC`, with `weights` and `FUN` set to be default.
+Next we calculate the energy for `initial_FC`, with `FUN` set to be default. `weights` is set to -1 for social desirability and -3 for item difficulty because we want the discrepancy of these characteristics to be as low as possible within a block.
+
+The weight for item difficulty is higher to scale for its smaller range than social desirability. Beware about the scaling difference among different item characteristics and use different weights accordingly.
 ```{r}
-cal_block_energy(block = initial_FC, item_chars = item_chars)
+cal_block_energy(block = initial_FC, item_chars = item_chars, weights = char_weights)
 ```
-If IIAs are to be involved we have:
+If IIAs are to be involved we have lower energy value. This is because these randomly generated responses are not likely to be consistent with each other, hence very low and even negative IIAs:
 ```{r}
 cal_block_energy_with_iia(block = initial_FC, item_chars = item_chars, 
+                          weights = char_weights,
                           rater_chars = item_responses)
 ```
 Notice that if we give zero weights to all IIAs we will get the same energy value as `cal_block_energy`:
 ```{r}
 cal_block_energy_with_iia(block = initial_FC, item_chars = item_chars, 
-                          rater_chars = item_responses, iia_weights = c(0, 0, 0, 0))
+                          weights = char_weights,
+                          rater_chars = item_responses, 
+                          iia_weights = c(0, 0, 0, 0))
 ```
 
 Also, if you want to see the inter-item agreement metrics for each block, you can use `get_iia()`.
-It should not be too impressive anyway, because responses for each item here are rather independent and are unlikely to be highly consistent.
+It should not be too impressive and is for demonstration purposes only. Users are suggested to use real world response data to see the IIA within each block.
 
 ```{r}
-colMeans(get_iia(block = initial_FC, data = item_responses))
+knitr::kable(get_iia(block = initial_FC, data = item_responses))
 ```
 
 
@@ -186,9 +195,11 @@ If you wish to use IIAs as pairing criterion, here are some arguments that might
 ```{r}
 # Note that this will take some time to run! (~ 1-2 minutes with this setting)
 
-# Weights for social desirability score and item difficulty should be set to -1, because we don't want variance for these characteristics to be big.
+# Weights for social desirability score and item difficulty should be set to -1, 
+# because we don't want variance for these characteristics to be big.
 result <- sa_pairing_generalized(block = initial_FC, eta_Temperature = 0.01,
-                                 r = 0.995, end_criteria = 10^(-6), weights = c(1, -1, -1),
+                                 r = 0.995, end_criteria = 10^(-6), 
+                                 weights = char_weights,
                                  item_chars = item_chars, use_IIA = TRUE,
                                  rater_chars = item_responses)
 ```
@@ -198,61 +209,79 @@ result <- sa_pairing_generalized(block = initial_FC, eta_Temperature = 0.01,
 
 Finally, let's see how this pairing method improves from the initial solution!
 
-Let's first see the total energy compared to the previous one: An increase from `r cal_block_energy(block = initial_FC, item_chars = item_chars)` to `r cal_block_energy(block = result$block_final, item_chars = item_chars)` is observed.
-
+Let's first see the total energy compared to the previous one. First are the initial energy, which is identical to what we have calculated in Step 4.
 ```{r}
-cal_block_energy(block = result$block_final, item_chars = item_chars)
+# Initial energy with IIA
+cal_block_energy_with_iia(block = result$block_initial, item_chars = item_chars, 
+                          weights = char_weights, rater_chars = item_responses)
+
+# Alternative way to calculate initial energy
+print(result$energy_initial)
 ```
 
-That looks less intuitive. Let's take a look at how items are matched within each block. First are underlying latent traits.
+And the final result:
+```{r}
+# Final energy with IIA
+cal_block_energy_with_iia(block = result$block_final, item_chars = item_chars, 
+                          weights = char_weights, rater_chars = item_responses)
+
+# Alternative way to calculate final energy
+print(result$energy_final)
+```
+
+Let's take a look at how items are matched within each block. First are underlying latent traits.
 
 This time, within each block, the three items are already coming from three distinct latent traits!
 
 __(Note: It does not guarantee that items will ALWAYS come from different latent traits after pairing. But if you want to increase the likelihood for such a result, you can increase the weight corresponding to item dimension)__
 ```{r}
-print(matrix(item_chars$DIM[result$block_final], ncol = 3))
+knitr::kable(matrix(item_chars$DIM[t(result$block_final)], ncol = 3, byrow = TRUE))
 ```
 
-Next let's look at difference in social desirability within each block. Item social desirability scores are much closer to each other within each block, with block 8 and 16 as exceptions.
+Next let's look at difference in social desirability within each block. Item social desirability scores are much closer to each other within each block, but we see that there are still big discrepancies two blocks.
 ```{r}
-sd_final <- matrix(item_chars$SD_Mean[result$block_final], ncol = 3)
-print(sd_final)
+sd_final <- matrix(item_chars$SD_Mean[t(result$block_final)], ncol = 3, byrow = TRUE)
+knitr::kable(sd_final)
 ```
 
-How much have we improved on the average variance for all blocks?
+A more intuitive way to present this: how much have we improved on the average variance for all blocks?
+Still, it is much lower, but we see there is always space to improve.
 ```{r}
-print(mean(apply(sd_initial, 1, var)))   # .122
-print(mean(apply(sd_final, 1, var)))     # .014
+# Initial
+print(mean(apply(sd_initial, 1, var)))   
+
+# Final
+print(mean(apply(sd_final, 1, var)))     
 ```
 
 
-Finally we look at item difficulty.
+Finally we look at item difficulty. Good improvement is also observed. We see that difference in item difficulty within a block also decreases:
 ```{r}
-diff_final <- matrix(item_chars$DIF[result$block_final], ncol = 3)
-print(diff_final)
+diff_final <- matrix(item_chars$DIF[t(result$block_final)], ncol = 3, byrow = TRUE)
+knitr::kable(diff_final)
 ```
 
-How much have we improved on the average variance for all blocks?
+How much have we improved on the average variance for all blocks in this case?
 ```{r}
-print(mean(apply(diff_initial, 1, var)))   # .428
-print(mean(apply(diff_final, 1, var)))     # .063
+print(mean(apply(diff_initial, 1, var)))   
+print(mean(apply(diff_final, 1, var)))     
 ```
 
-How about IIAs?
+We also list IIAs for demonstration purposes, which also improves.
 ```{r}
 colMeans(get_iia(result$block_final, data = item_responses))
 ```
 
 
-### Step 6: Improvement with a multi-step optimization process.
+### Step 6: Automatic pairing with a multi-step optimization process
 
-You might have observed that with this automatic pairing we have optimized most but not all of the blocks in terms of social desirability and item difficulty. It is possible that simultaneous optimization will inevitably favor the improvement in one characteristic at the cost of losing the best fit for the other.
+In some cases, users may want to optimize item characteristics sequentially, rather than in a simultaneous manner. This makes sense because it is possible that simultaneous optimization will inevitably favor the improvement in one characteristic at the cost of losing the best fit for the other, as we have observed in Step 5.
 
 Two solutions can be made to address this problem:
 
-1. Pay careful attention to the distribution of each item characteristic and assign higher weights for characteristics with lower means. Or try smaller `end_criteria` or larger `r` and `n_exchange` values to allow for more iterations to be run;
+1. Pay careful attention to the distribution of each item characteristic and try out different weights for characteristics with different scales. Alternatively, try smaller `end_criteria` or larger `r` and `n_exchange` values to allow for more iterations to be run;
 
-2. Use a multi-step optimization process, where some item characteristics are optimized first, then others. This involves running `sa_pairing_generalized()` several times, which each time optimizing more and more item characteristics (Those not optimized at a certain stage receive a weight of 0). Characteristics optimized at earlier stages receive a much higher weight than those at later stages.
+2. Use a multi-step optimization process, where some item characteristics are optimized first, then others. This involves running `sa_pairing_generalized()` several times, which each time optimizing more and more item characteristics. Those characteristics optimized will remain their weight in later stages, but have 0 weights if they are not yet optimized.
 
 With the previous example, we show how method 2 will work, starting from `initial_FC`. First we perform optimization on latent traits:
 ```{r}
@@ -263,20 +292,20 @@ FC_1 <- sa_pairing_generalized(initial_FC, eta_Temperature = 0.01,
                                  rater_chars = item_responses)
 ```
 
-Then, we optimize based on minimizing variance in social desirability within a block. Notice that a high weight have been given to item factor, the characteristic which is already optimized:
+Then, we optimize based on minimizing variance in social desirability within a block. 
 ```{r}
 FC_2 <- sa_pairing_generalized(FC_1$block_final, eta_Temperature = 0.01,
                                r = 0.995, end_criteria = 10^(-6), 
-                               weights = c(10, -1, 0),
+                               weights = c(1, -1, 0),
                                item_chars = item_chars, use_IIA = TRUE,
                                rater_chars = item_responses)
 ```
 
-Finally, we optimize bease on minimizing variance in item difficulty. Same as above, characteristics which are already optimized will be given a high weight:
+Finally, we optimize bease on minimizing variance in item difficulty.
 ```{r}
 FC_3 <- sa_pairing_generalized(FC_2$block_final, eta_Temperature = 0.01,
                                r = 0.995, end_criteria = 10^(-6), 
-                               weights = c(100, -10, -1),
+                               weights = c(1, -1, -3),
                                item_chars = item_chars, use_IIA = TRUE,
                                rater_chars = item_responses)
 ```
@@ -284,36 +313,43 @@ FC_3 <- sa_pairing_generalized(FC_2$block_final, eta_Temperature = 0.01,
 ### Step 7: See how a multi-step iteration improves
 
 First, underlying latent traits. It does look nice like what we have in Step 5.
-
 ```{r}
-print(matrix(item_chars$DIM[FC_3$block_final], ncol = 3))
+knitr::kable(matrix(item_chars$DIM[t(FC_3$block_final)], ncol = 3, byrow = TRUE))
 ```
 
-Next let's look at difference in social desirability within each block. It performs slightly better than what we have in Step 5, with two block still can be improved.
+Next let's look at difference in social desirability within each block. It performs better than in Step 5, where the discrepancy within block is removed!
 ```{r}
-sd_FC3 <- matrix(item_chars$SD_Mean[FC_3$block_final], ncol = 3)
-print(sd_FC3)
+sd_FC3 <- matrix(item_chars$SD_Mean[t(FC_3$block_final)], ncol = 3, byrow = TRUE)
+knitr::kable(sd_FC3)
 ```
 
-As before, let's see how much have we improved on the average variance for all blocks.
+As before, let's see how much have we improved on the average variance for all blocks. Improvement in social desirability is verified by seeing the decrease in variance.
 ```{r}
+# Initial solution
 print(mean(apply(sd_initial, 1, var)))   
+
+# Simultaneous optimization
 print(mean(apply(sd_final, 1, var)))    
 
+# Sequential optimization
 print(mean(apply(sd_FC3, 1, var)))       
 ```
 
-
 Finally we look at item difficulty.
 ```{r}
-diff_fc3 <- matrix(item_chars$DIF[FC_3$block_final], ncol = 3)
-print(diff_final)
+diff_fc3 <- matrix(item_chars$DIF[t(FC_3$block_final)], ncol = 3, byrow = TRUE)
+knitr::kable(diff_final)
 ```
 
-How much have we improved on the average variance for all blocks?
+Average variance of item difficulty also decreases!
 ```{r}
+# Initial solution
 print(mean(apply(diff_initial, 1, var))) 
-print(mean(apply(diff_final, 1, var)))     
+
+# Simultaneous optimization
+print(mean(apply(diff_final, 1, var)))   
+
+# Sequential optimization
 print(mean(apply(diff_fc3, 1, var)))      
 ```
 
@@ -321,12 +357,15 @@ How about IIAs?
 ```{r}
 colMeans(get_iia(FC_3$block_final, data = item_responses))
 ```
+
 ## Conclusion
 
-In this tutorial, we have shown how the functionalities of `autoFC` can be used to automatically build forced choice scales with better matches in various item characteristics. 
+In this tutorial, we have shown how the functionality of `autoFC` can be used to automatically build forced choice scales with better matches in various item characteristics. 
 
-We note that the automatic tool does not guarantee the production of a scale with best matches in these characteristic simultaneously, but instead provides solutions close to optimal among a search space where exhasutive enumeration of each solution is unrealistic.
+We note that this automatic tool does not guarantee the production of a scale with best matches in these characteristic simultaneously, but instead provides solutions close to optimal among a search space where exhaustive enumeration of each solution is unrealistic.
 
   * To further illustrate this, consider when constructing an FC scale consisting of 20 triplets with 60 items, the number of possible scales is $\frac{C^3_{60} * C^3_{57} * ...... }{20!} = \frac{60!}{6^{20}\times20!} = 9.35\times10^{47}$.
   
-To produce scales with better overall fit, users are encouraged to customize their own functions for optimizing each item characteristic, as well as trying out different `weights`, `iia_weights`, `Temperature (eta_Temperature)` or `r` values. 
+We also note that, to produce scales with better overall fit, users are encouraged to: 1. customize their own functions for optimizing each item characteristic; 2. Try out different `weights`, `iia_weights`, `Temperature (eta_Temperature)` or `r` values; 3. Use a sequential process to optimize item characteristics one by one.
+
+Good luck!
