@@ -1,15 +1,16 @@
 Package: autoFC
 Type: Package
 Title: Automatic Construction of Forced-Choice Tests
-Version: 0.1.0
+Version: 0.1.2
 Authors@R: c(
-  person("Mengtong", "Li", email = "ml70@illinois.edu", role = c("cre", "aut")),
-  person("Tianjun", "Sun", email = "tsun5@illinois.edu", role = "aut"),
+  person("Mengtong", "Li", email = "ml70@illinois.edu", role = c("cre", "aut"), comment = c(ORCID = "0000-0002-1766-4976")),
+  person("Tianjun", "Sun", email = "tsun5@illinois.edu", role = "aut", comment = c(ORCID = "0000-0002-3655-0042")), 
   person("Bo", "Zhang", email = "bozhang3065@gmail.com", role = "aut"))
-Author: Mengtong Li [cre, aut], Tianjun Sun [aut], Bo Zhang [aut]
+Author: Mengtong Li [cre, aut] (<https://orcid.org/0000-0002-1766-4976>), Tianjun Sun [aut] (<https://orcid.org/0000-0002-3655-0042>), Bo Zhang [aut]
 Maintainer: Mengtong Li <ml70@illinois.edu>
-Description: Forced-choice response format has been widely used for preventing response biases such as socially desirable responding (SDR), by balancing or matching items in terms of their characteristics such as perceived desirability. Although such matching techniques are already used for forced-choice test construction, these techniques rely on manual item matching or can only accommodate matching of item pairs, and fall far short when items need to be matched on multiple characteristics, when each pair contains more than two items, or when the total number of items to pair is very large. 
-    To address these limitations, we developed an automatic item matching package where users are allowed to match items on any number of item characteristics simultaneously, using any criteria to evaluate the goodness of matching, including mean difference, variance or inter-item agreement (IIA) metrics.
+Description: Forced-choice (FC) response has gained increasing popularity and interest for its resistance to faking when well-designed (Cao & Drasgow, 2019 <doi:10.1037/apl0000414>). To established well-designed FC scales, typically each item within a block should measure different trait and have similar level of social desirability (Zhang et al., 2020 <doi:10.1177/1094428119836486>). Recent study also suggests the importance of high inter-item agreement of social desirability between items within a block (Pavlov et al., 2021 <doi:10.31234/osf.io/hmnrc>). In addition to this, FC developers may also need to maximize factor loading differences (Brown & Maydeu-Olivares, 2011 <doi:10.1177/0013164410375112>) or minimize item location differences (Cao & Drasgow, 2019 <doi:10.1037/apl0000414>) depending on scoring models. Decision of which items should be assigned to the same block, termed item pairing, is thus critical to the quality of an FC test. This pairing process is essentially an optimization process which is currently carried out manually. However, given that we often need to simultaneously meet multiple objectives, manual pairing becomes impractical or even not feasible once the number of latent traits and/or number of items per trait are relatively large. To address these problems, autoFC is developed as a practical tool for facilitating the automatic construction of FC tests, essentially exempting users from the burden of manual item pairing and reducing the computational costs and biases induced by simple ranking methods. Given characteristics of each item (and item responses), FC tests can be automatically constructed based on user-defined pairing criteria and weights as well as customized optimization behavior. Users can also construct parallel forms of the same test following the same pairing rules.
+URL: https://github.com/tspsyched/autoFC
+BugReports: https://github.com/tspsyched/autoFC/issues
 License: GPL-3
 Encoding: UTF-8
 Imports: irrCAC
@@ -18,4 +19,3 @@ Suggests:
     rmarkdown,
     knitr
 VignetteBuilder: knitr
-
