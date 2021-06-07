@@ -56,4 +56,7 @@ Below is a brief explanation of all functions provided by __autoFC__. Details an
   * If all items in the item characteristic data frame are used to construct the FC test, `sa_pairing_generalized()` will produce new solutions by randomly exchanging items between two blocks; Otherwise, it will randomly select between exchanging items and replacing with unused items based on proportion of items used to construct the test.
   
   * `sa_pairing_generalized()` has built-in default values for most of the arguments if they are not given; For example, an FC test with block size 2 using all of the given items will be constructed by default if the `block` argument is not provided. See the tutorial below for meanings and default values for other arguments.
-    
+
+## Citation
+
+Li, M., Sun, T., & Zhang, B. (2021). autoFC: An R Package for Automatic Item Pairing in Forced-Choice Test Construction. http://doi.org/10.31234/osf.io/cnw52
