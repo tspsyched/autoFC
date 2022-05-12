@@ -59,4 +59,5 @@ Below is a brief explanation of all functions provided by __autoFC__. Details an
 
 ## Citation
 
-Li, M., Sun, T., & Zhang, B. (2021). autoFC: An R Package for Automatic Item Pairing in Forced-Choice Test Construction. http://doi.org/10.31234/osf.io/cnw52
+Li, M., Sun, T., & Zhang, B. (2022). autoFC: An R Package for Automatic Item Pairing in Forced-Choice Test Construction. Applied Psychological Measurement, 46(1), 70–72. https://doi.org/10.1177/01466216211051726
+
