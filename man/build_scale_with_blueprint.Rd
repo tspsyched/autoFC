@@ -17,17 +17,17 @@ TO BE DONE
 
 \item{df_item_nums_name, df_trait_name, df_sign_name, }{Column names in \code{item_df} that specifies item_number, trait of the item, and keying of the item, respectively}
 
-\item{df_matching_criteria_name}{Column name in \code{item_df} that is used to evaluate the matching criterion specified in \code{bp_criterion_name}}
+\item{df_matching_criteria_name}{Optional. Column name in \code{item_df} that is used to evaluate the matching criterion specified in \code{bp_criterion_name}}
 
-\item{df_matching_function}{A character string containing function name for evaluating the matching criterion}
+\item{df_matching_function}{Optional. A character string containing function name for evaluating the matching criterion}
 
-\item{df_matching_adjust_factor}{A numeric value. If after \code{max_attempts_in_comb} attempts the additional
+\item{df_matching_adjust_factor}{Optional. A numeric value. If after \code{max_attempts_in_comb} attempts the additional
 criteria in \code{df_matching_criteria_name} cannot be met (> the cutoff value specified in \code{blueprint[, bp_criterion_name]}), 
 multiply that cutoff value by this adjusting factor.}
 
-\item{max_attempts_in_comb}{An interger value. How many attempts will be made for finding a block that satisfies the blueprint, before we adjust the cutoff value?}
+\item{max_attempts_in_comb}{An integer value. How many attempts will be made for finding a block that satisfies the blueprint, before we adjust the cutoff value?}
 
-\item{max_attempts_in_adjust}{An interger value. How many attempts will be made for adjusting cutoff value? 
+\item{max_attempts_in_adjust}{An integer value. How many attempts will be made for adjusting cutoff value? 
 Will throw a warning and return the currently partially constructed scale (and specify which block might have problems) if number of attempts exceeds this value.}
 }
 \value{
