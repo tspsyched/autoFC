@@ -97,14 +97,14 @@ build_scale_with_blueprint <- function(item_df, blueprint,
         selected_comb <- sample(1:nrow(all_possible_combs), 1)
         temp_df <- remaining_items[c(all_possible_combs[selected_comb, ]),]
         ## If df_matching_criteria_name is not given, then just treat it is succeed.
-        if (missing(df_matching_criteria_name)) {
-           matched_blocks <- temp_df
-           success_comb <- c(all_possible_combs[selected_comb, ])
-           break
+        if (missing(bp_criterion_name)) {
+          matched_blocks <- temp_df
+          success_comb <- c(all_possible_combs[selected_comb, ])
+          break
         }
         ## Succeed in meeting the criteria?
-        if (eval(call(df_matching_function, temp_df[, df_matching_criteria_name, drop = TRUE]))
-            <= current_block_criterion[1]) {
+        else if (eval(call(df_matching_function, temp_df[, df_matching_criteria_name, drop = TRUE]))
+                 <= current_block_criterion[1]) {
           matched_blocks <- temp_df
           success_comb <- c(all_possible_combs[selected_comb, ])
           break
@@ -115,7 +115,7 @@ build_scale_with_blueprint <- function(item_df, blueprint,
       }
       if (!is.null(matched_blocks)) {
         ## Succeed? This block satisfies the specification of blueprint!
-        if (missing(df_matching_criteria_name)) {
+        if (missing(bp_criterion_name)) {
           matched_blocks$N_adjusts <- "Not Applicable"
           matched_blocks$final_criteria <- "Not specified"
         }
@@ -123,7 +123,7 @@ build_scale_with_blueprint <- function(item_df, blueprint,
           matched_blocks$N_adjusts <- N_attempts_in_adjust
           matched_blocks$final_criteria <- current_block_criterion[1]
         }
-
+        
         picked_df <- rbind(picked_df, matched_blocks)
         remaining_items$picked[success_comb] <- 1
         ## And we are done with this block!
