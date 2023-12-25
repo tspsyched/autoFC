@@ -8,13 +8,13 @@
 #' @param blueprint  Pre-specified blueprint for your blocks. Preferably constructed from \code{construct_blueprint()}
 #' @param bp_block_name,bp_item_nums_name,bp_trait_name,bp_sign_name
 #' Column names in the blueprint that specifies block number, item number in the block, desired trait of the item, and desired keying of the item, respectively
-#' @param bp_criterion_name  Column name in the blueprint that indicates the additional matching criterion (cutoff value) you wish to test
+#' @param bp_matching_criterion_name  Column name in the blueprint that indicates the additional matching criterion (cutoff value) you wish to test
 #' @param df_item_nums_name,df_trait_name,df_sign_name,
 #' Column names in \code{item_df} that specifies item_number, trait of the item, and keying of the item, respectively
-#' @param df_matching_criteria_name  Optional. Column name in \code{item_df} that is used to evaluate the matching criterion specified in \code{bp_criterion_name}
+#' @param df_matching_criterion_name  Optional. Column name in \code{item_df} that is used to evaluate the matching criterion specified in \code{bp_matching_criterion_name}
 #' @param df_matching_function  Optional. A character string containing function name for evaluating the matching criterion
 #' @param df_matching_adjust_factor  Optional. A numeric value. If after \code{max_attempts_in_comb} attempts the additional
-#' criteria in \code{df_matching_criteria_name} cannot be met (> the cutoff value specified in \code{blueprint[, bp_criterion_name]}), 
+#' criteria in \code{df_matching_criterion_name} cannot be met (> the cutoff value specified in \code{blueprint[, bp_matching_criterion_name]}), 
 #' multiply that cutoff value by this adjusting factor.
 #' @param max_attempts_in_comb  An integer value. How many attempts will be made for finding a block that satisfies the blueprint, before we adjust the cutoff value?
 #' @param max_attempts_in_adjust  An integer value. How many attempts will be made for adjusting cutoff value? 
@@ -45,9 +45,9 @@
 #' 
 build_scale_with_blueprint <- function(item_df, blueprint,
                                        bp_block_name, bp_item_nums_name, 
-                                       bp_trait_name, bp_sign_name, bp_criterion_name,
+                                       bp_trait_name, bp_sign_name, bp_matching_criterion_name,
                                        df_item_nums_name, df_trait_name, df_sign_name,
-                                       df_matching_criteria_name, df_matching_function,
+                                       df_matching_criterion_name, df_matching_function,
                                        df_matching_adjust_factor, 
                                        max_attempts_in_comb, max_attempts_in_adjust) {
   picked_df <- data.frame()
@@ -63,8 +63,8 @@ build_scale_with_blueprint <- function(item_df, blueprint,
     current_block_in_bp <- blueprint[which(blueprint[, bp_block_name] == current_block_ID),]
     current_block_traits <- current_block_in_bp[, bp_trait_name]
     current_block_signs <- current_block_in_bp[, bp_sign_name]
-    if (!missing(bp_criterion_name)) {
-      current_block_criterion <- current_block_in_bp[, bp_criterion_name]
+    if (!missing(bp_matching_criterion_name)) {
+      current_block_criterion <- current_block_in_bp[, bp_matching_criterion_name]
     }
     ### Then we check for trait and sign combination requirements, and see how many possible combinations we can get
     item_combs <- list()
@@ -96,14 +96,14 @@ build_scale_with_blueprint <- function(item_df, blueprint,
         ### Randomly select one combination
         selected_comb <- sample(1:nrow(all_possible_combs), 1)
         temp_df <- remaining_items[c(all_possible_combs[selected_comb, ]),]
-        ## If df_matching_criteria_name is not given, then just treat it is succeed.
-        if (missing(bp_criterion_name)) {
+        ## If df_matching_criterion_name is not given, then just treat it is succeed.
+        if (missing(bp_matching_criterion_name)) {
           matched_blocks <- temp_df
           success_comb <- c(all_possible_combs[selected_comb, ])
           break
         }
         ## Succeed in meeting the criteria?
-        else if (eval(call(df_matching_function, temp_df[, df_matching_criteria_name, drop = TRUE]))
+        else if (eval(call(df_matching_function, temp_df[, df_matching_criterion_name, drop = TRUE]))
                  <= current_block_criterion[1]) {
           matched_blocks <- temp_df
           success_comb <- c(all_possible_combs[selected_comb, ])
@@ -115,7 +115,7 @@ build_scale_with_blueprint <- function(item_df, blueprint,
       }
       if (!is.null(matched_blocks)) {
         ## Succeed? This block satisfies the specification of blueprint!
-        if (missing(bp_criterion_name)) {
+        if (missing(bp_matching_criterion_name)) {
           matched_blocks$N_adjusts <- "Not Applicable"
           matched_blocks$final_criteria <- "Not specified"
         }
