@@ -13,16 +13,16 @@ TO BE DONE
 
 \item{bp_block_name, bp_item_nums_name, bp_trait_name, bp_sign_name}{Column names in the blueprint that specifies block number, item number in the block, desired trait of the item, and desired keying of the item, respectively}
 
-\item{bp_criterion_name}{Column name in the blueprint that indicates the additional matching criterion (cutoff value) you wish to test}
+\item{bp_matching_criterion_name}{Column name in the blueprint that indicates the additional matching criterion (cutoff value) you wish to test}
 
 \item{df_item_nums_name, df_trait_name, df_sign_name, }{Column names in \code{item_df} that specifies item_number, trait of the item, and keying of the item, respectively}
 
-\item{df_matching_criteria_name}{Optional. Column name in \code{item_df} that is used to evaluate the matching criterion specified in \code{bp_criterion_name}}
+\item{df_matching_criterion_name}{Optional. Column name in \code{item_df} that is used to evaluate the matching criterion specified in \code{bp_matching_criterion_name}}
 
 \item{df_matching_function}{Optional. A character string containing function name for evaluating the matching criterion}
 
 \item{df_matching_adjust_factor}{Optional. A numeric value. If after \code{max_attempts_in_comb} attempts the additional
-criteria in \code{df_matching_criteria_name} cannot be met (> the cutoff value specified in \code{blueprint[, bp_criterion_name]}), 
+criteria in \code{df_matching_criterion_name} cannot be met (> the cutoff value specified in \code{blueprint[, bp_matching_criterion_name]}), 
 multiply that cutoff value by this adjusting factor.}
 
 \item{max_attempts_in_comb}{An integer value. How many attempts will be made for finding a block that satisfies the blueprint, before we adjust the cutoff value?}
