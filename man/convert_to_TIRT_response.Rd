@@ -23,7 +23,7 @@ Preferably left blank and obtained through \code{block_design}.}
 }
 \value{
 A data frame containing pairwise (if \code{format == "pairwise"}) or
-rank (if \code{format == "ranks}) responses to each block for the \code{N_response} participants.
+rank (if \code{format == "ranks"}) responses to each block for the \code{N_response} participants.
 }
 \description{
 TO BE DONE
