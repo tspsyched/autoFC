@@ -1,4 +1,7 @@
 # autoFC
+**Update 2023.12.25: New functions have been added to the Github repository. Detailed descriptions of the newly added functions can be found in the documentation. This README file is also to be updated soon. Stay tuned!**
+
+
 A collection of tools to automatically pair forced-choice items and examine their measurement performance
 
 ## Overview
@@ -59,4 +62,5 @@ Below is a brief explanation of all functions provided by __autoFC__. Details an
 
 ## Citation
 
-Li, M., Sun, T., & Zhang, B. (2021). autoFC: An R Package for Automatic Item Pairing in Forced-Choice Test Construction. http://doi.org/10.31234/osf.io/cnw52
+Li, M., Sun, T., & Zhang, B. (2022). autoFC: An R Package for Automatic Item Pairing in Forced-Choice Test Construction. _Applied Psychological Measurement, 46_(1), 70–72. https://doi.org/10.1177/01466216211051726
+
