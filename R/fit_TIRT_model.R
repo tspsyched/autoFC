@@ -10,6 +10,8 @@
 #' 
 #' @param lavaan_estimator Which estimator to use when lavaan is chosen as the method of estimating the TIRT model. Defaults to "WLSMV".
 #' 
+#' @param remove_file Whether the input/output files will be removed after model estimation, when Mplus is chosen as the method of estimating the TIRT model.
+#' 
 #' @param stan_cores,chains,verbose,iter Parameters used in \code{thurstonianIRT::fit_TIRT_stan} 
 #' 
 #' @details 
@@ -19,9 +21,9 @@
 #' Users need to provide a long format TIRT response data set as generated from \code{get_TIRT_long_data()} or from \code{thurstonianIRT::make_TIRT_data()},
 #' and they can choose from three estimation methods: lavaan, MPLUS or stan. For lavaan and stan, additional arguments can be specified.
 #' 
-#' We note that currently the lavaan method does not provide standard error estimates, and for complex TIRT models (e.g., long scale or many traits)
-#' the Mplus method may also produce error due to the mechanics Mplus handles its input syntax. The stan method is the most stable
-#' but can take a very long time for estimation. Users wishing to speed up the estimation process may also consider using the Excel macro
+#' We note that currently the lavaan method does not provide standard error estimates. The stan method is the most stable
+#' but can take a very long time for estimation. The mplus method can be a good choice but may occassionally produce errors
+#' due to model convergence issues. In these rare cases, users may also consider using the Excel macro
 #' developed by Brown & Maydeu-Olivares (2012) to generate Mplus syntax and directly run the syntax in Mplus.
 #' 
 #' @references
@@ -68,7 +70,7 @@
 
 
 fit_TIRT_model <- function(data_TIRT, method = "lavaan", lavaan_estimator = "WLSMV", 
-                           stan_cores = 4, chains = 4, iter = 2000, verbose = TRUE) {
+                           stan_cores = 4, chains = 4, iter = 2000, verbose = TRUE, remove_file = FALSE) {
   FC_results <- list()
   
   if (method == "lavaan") {
@@ -76,9 +78,9 @@ fit_TIRT_model <- function(data_TIRT, method = "lavaan", lavaan_estimator = "WLS
     traits_TIRT <- predict(fit_TIRT, newdata = data_TIRT)  
   }
   else if (method == "mplus") {
-    warning("Due to the mechanics Mplus handles its input syntax, the input files generated here might not be correctly read by Mplus. We recommend using the Excel Macro developed by Brown & Maydeu-Olivares (2012) for generating Mplus syntax if you wish to use Mplus for estimating the TIRT model.")
+    # warning("Due to the mechanics Mplus handles its input syntax, the input files generated here might not be correctly read by Mplus. We recommend using the Excel Macro developed by Brown & Maydeu-Olivares (2012) for generating Mplus syntax if you wish to use Mplus for estimating the TIRT model.")
     # print("Fitting TIRT")
-    fit_TIRT <- fit_TIRT_mplus_new(data_TIRT)
+    fit_TIRT <- fit_TIRT_mplus_new(data_TIRT, remove_file)
     # print("Predicting traits")
     # print(fit_TIRT)
     traits_TIRT <- predict(fit_TIRT)           
