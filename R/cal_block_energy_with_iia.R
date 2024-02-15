@@ -68,6 +68,7 @@
 #' Gwet, K. L. (2014). \emph{Handbook of inter-rater reliability (4th ed.):
 #' The definitive guide to measuring the extent of agreement among raters}.
 #' Gaithersburg, MD: Advanced Analytics Press.
+#' 
 #' @note Use \code{cal_block_energy_with_iia} if inter-item agreement
 #' (IIA) metrics are needed.
 #'

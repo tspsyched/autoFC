@@ -1,13 +1,14 @@
-#' Scatter plot for true vs estimated scores, true score vs absolute error, etc.
+#' Scatter Plot for True vs Estimated Scores, True Score vs Absolute Error, etc.
 #'
-#' @description  TO BE DONE
+#' @description  This function is a simple plot for diagnostic purposes examining
+#' the performance of the FC scale based on simulated data.
 #'
-#' @usage TO BE DONE
 #'
 #' @param x_scores  Scores to be plotted on the x axis
 #' @param y_scores  Scores to be plotted on the y axis
 #' @param type  Which type of plots is plotted? Can be \code{"simple"} for simple x-y plot, or \code{"abs.diff"}
 #' for plotting absolute difference of (y-x) vs x.
+#' @param ...  Other parameters used in \code{plot()}
 #' 
 #'
 #' @details This is only a very crude plot function extending \code{plot()} for demonstrative purposes.
@@ -18,7 +19,8 @@
 #' @author Mengtong Li
 #'
 #' 
-#' @examples TO BE DONE
+#' @examples
+#' plot_scores(rnorm(100), rnorm(100))
 #'
 #' @export
 plot_scores <- function(x_scores, y_scores, type = "simple", ...) {

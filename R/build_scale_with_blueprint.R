@@ -1,8 +1,9 @@
-#' Setup an initial FC scale that is consistent with the desired blueprint.
+#' Construct Forced-Choice Blocks Aligned with the Specifications in a Blueprint
 #'
-#' @description TO BE DONE
+#' @description This function takes in the information of all available items as well as
+#' a blueprint data frame specifying the design of blocks, and returns a data frame of item
+#' blocks consistent with the blueprint (if possible).
 #'
-#' @usage TO BE DONE
 #'
 #' @param item_df  Data frame containing information related to all the available items
 #' @param blueprint  Pre-specified blueprint for your blocks. Preferably constructed from \code{construct_blueprint()}
@@ -16,33 +17,98 @@
 #' @param df_matching_adjust_factor  Optional. A numeric value. If after \code{max_attempts_in_comb} attempts the additional
 #' criteria in \code{df_matching_criterion_name} cannot be met (> the cutoff value specified in \code{blueprint[, bp_matching_criterion_name]}), 
 #' multiply that cutoff value by this adjusting factor.
-#' @param max_attempts_in_comb  An integer value. How many attempts will be made for finding a block that satisfies the blueprint, before we adjust the cutoff value?
-#' @param max_attempts_in_adjust  An integer value. How many attempts will be made for adjusting cutoff value? 
+#' @param max_attempts_in_comb  Optional. An integer value. How many attempts will be made for finding a block that satisfies the blueprint, before we adjust the cutoff value?
+#' @param max_attempts_in_adjust  Optional. An integer value. How many attempts will be made for adjusting cutoff value? 
 #' Will throw a warning and return the currently partially constructed scale (and specify which block might have problems) if number of attempts exceeds this value.
 #' 
 #' @details Although automatically finding the block combinations that can satisfy
-#' multiple certain criteria for matching can be helpful, users may also wish to
-#' have exact specifications for some blocks in many cases. This function serves as this purpose.
-#' Typically in FC construction, we may want to explicitly specify the trait and keying combinations
-#' so this function allows you to explicitly do that. Users are free to extend this function if further
+#' multiple certain criteria for matching can be helpful (as the primary functionality of the previous
+#' version of \code{autoFC} is about), users may also wish to have exact specifications for some blocks in many cases. 
+#' For example, typically in FC construction, we may want to explicitly specify the trait and keying combinations
+#' for each block. This function allows you to explicitly do that. Users are free to extend this function if further
 #' exact specifications are needed.
 #' 
 #' For now, this function also allows users to specify one additional matching criterion for
-#' the blocks. Users can designate the function for calculating this criterion and specify
-#' a multiplicative adjusting factor, if the criterion fails to be met after a specified number of attempts.
-#' One good example of matching criterion is matching in rating, where you want ratings of the items in the same block
+#' the blocks. Users can designate the function for calculating this criterion (\code{df_matching_function}) and specify
+#' a multiplicative adjusting factor (\code{df_matching_adjust_factor}), 
+#' if the criterion fails to be met after a specified number of attempts (\code{max_attempts_in_comb}).
+#' One good example of matching criterion is matching in social desirability rating, where you want ratings of the items in the same block
 #' to be less than a certain cutoff.
+#' 
+#' If after a certain number of times (\code{max_attempts_in_adjust}) the given block is still unable to be constructed 
+#' (i.e., criterion matching still fails even if we relax the cutoff multiple times), a warning message will be shown
+#' and a partially built scale will be returned. Warnings along with a partially built scale may also be returned 
+#' when it is impossible for the remaining items in \code{item_df} to satisfy the specification in the blueprint
+#'  (e.g. we have no items for trait1 left, but the blueprint requires a block with an item measuring trait1).
 #'
+#' @seealso \code{construct_blueprint()}
 #'
-#' @returns TO BE DONE
+#' @returns A data frame containing the selected items for each specified block.
+#' If matching criteria is specified, the data frame will also contain the number of
+#' times we adjusted the cutoffs for each block, and the final matching criteria cutoff
+#' resulting from adjustments.
 #' 
 #' @author Mengtong Li
 #'
 #' @import dplyr
-#' @examples TO BE DONE
+#' @examples
+#' #### For the case you do not need additional matching criterion
+#' item_info <- triplet_block_info
+#' test_bp <- construct_blueprint(N_blocks = 2, block_size = 3, 
+#'                                traits = c("honestyhumility", "emotionality", "extraversion",
+#'                                           "agreeableness", "conscientiousness", "openness"),
+#'                                signs = c(-1, 1, 1,
+#'                                          -1, -1, -1))
+#' ### Some arguments can be omitted if you don't have extra matching criteria.
+#' picked_scale <- build_scale_with_blueprint(item_df = item_info,
+#'                                            blueprint = test_bp,
+#'                                            ### These parameters are column names in test_bp
+#'                                            bp_block_name = "block",
+#'                                            bp_item_nums_name = "item_num",
+#'                                            bp_trait_name = "traits",
+#'                                            bp_sign_name = "signs",
+#'                                            ### These parameters are column names in item_info
+#'                                            df_item_nums_name = "ID",
+#'                                            df_trait_name = "Factor",
+#'                                            df_sign_name = "Keying")
+#' 
+#' #### Or you may want to match social desirability ratings, for example
+#' test_bp2 <- test_bp
+#' test_bp2$SD_matching <- rep(0.5, 15)
+#' 
+#' #### Suppose that the items also have their own ratings
+#' item_info2 <- item_info
+#' item_info2$SD_rating <- rnorm(15, 3.5, 1)
+#' range_m <- function(x) {
+#'   return(max(x) - min(x))
+#' }
+#' 
+#' ### Some parameters can be omitted if you don't have extra matching criteria.
+#' picked_scale2 <- build_scale_with_blueprint(item_df = item_info,
+#'                                             blueprint = test_bp,
+#'                                             ### These parameters are column names in test_bp
+#'                                             bp_block_name = "block",
+#'                                             bp_item_nums_name = "item_num",
+#'                                             bp_trait_name = "traits",
+#'                                             bp_sign_name = "signs",
+#'                                             ### These parameters are column names in item_info
+#'                                             df_item_nums_name = "ID",
+#'                                             df_trait_name = "Factor",
+#'                                             df_sign_name = "Keying",
+#'                                             ### These parameters will be used when you have extra matching criteria
+#'                                             df_matching_criterion_name = "SD_rating",
+#'                                             bp_matching_criterion_name = "SD_matching",
+#'                                             ## Which function is used to calculate matching?
+#'                                             df_matching_function = "range_m",
+#'                                             df_matching_adjust_factor = 1.25,
+#'                                             max_attempts_in_comb = 100,
+#'                                             max_attempts_in_adjust = 20)
 #'
 #' @export
 #' 
+#' 
+
+
 build_scale_with_blueprint <- function(item_df, blueprint,
                                        bp_block_name, bp_item_nums_name, 
                                        bp_trait_name, bp_sign_name, bp_matching_criterion_name,
@@ -136,7 +202,7 @@ build_scale_with_blueprint <- function(item_df, blueprint,
         N_attempts_in_adjust <- N_attempts_in_adjust + 1
         if (N_attempts_in_adjust > max_attempts_in_adjust) {
           warning(paste0("It seems like we cannot find a match for your blueprint after ", max_attempts_in_adjust,
-                         " attempts in relaxing the matching criteria. Consider increasing max_attempts_in_adjust and/or max_attempts, or adjust your blueprint."))
+                         " attempts in relaxing the matching criteria. Consider increasing max_attempts_in_adjust and/or max_attempts_in_comb, or adjust your blueprint."))
           warning(paste0("Problem appears when constructing block ", current_block_ID))
           return(picked_df)
         }

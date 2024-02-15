@@ -1,8 +1,8 @@
-#' Calculate the overall RMSE of the trait scores, or the RMSE in a certain trait score range
+#' Calculate the Overall RMSE of the Trait Scores, or the RMSE in a Certain Trait Score Range
 #'
-#' @description TO BE DONE
+#' @description This function is also for diagnostic purposes, examining which interval on the
+#' latent trait continuum does the FC scale demonstrate the best measurement accuracy.
 #'
-#' @usage TO BE DONE
 #'
 #' @param true_scores  Actual trait scores
 #' @param estimated_scores  Estimated trait scores from a specified model
@@ -10,13 +10,16 @@
 #' 
 #' 
 #' @details TO BE DONE
-#' @returns TO BE DONE
+#' @returns If \code{range_breaks} is not specified, an overall RMSE numeric value will be returned;
+#' else, a named list showing the RMSE in each score range will be returned.
 #' 
 #' @import SimDesign
 #' @author Mengtong Li
 #'
 #'
-#' @examples TO BE DONE
+#' @examples
+#' RMSE_range(rnorm(100), rnorm(100))
+#' RMSE_range(rnorm(100), rnorm(100), range_breaks = c(-3, -2, -1, 0, 1, 2, 3))
 #'
 #' @export
 

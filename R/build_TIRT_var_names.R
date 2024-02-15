@@ -1,8 +1,8 @@
-#' Automatically build variable names for the pairwise/rank responses in the TIRT model
+#' Build Variable Names for the Pairwise/Rank Responses in the TIRT Model
 #'
-#' @description TODO
+#' @description This function builds the variable names that corresponds to
+#' the pairwise comparisons or ranks among items within each block.
 #'
-#' @usage TODO
 #'
 #' @param item_name The prefix you want to have for your response variables.
 #'
@@ -10,13 +10,15 @@
 #' 
 #' @param format What format should the converted responses be in? Can be \code{"pairwise"} or \code{"ranks"}.
 #' 
-#' @details TODO
+#' @details Choose the correct \code{item_name} so that they are consistent with the item names
+#' in the data frame storing information of the items.
 #'
 #'
 #' @returns A vector of variable names 
 #'
 #' @author Mengtong Li
 #'
+#' @seealso \code{get_TIRT_long_data()}
 #'
 #' @examples
 #' build_var_names("i", block_size = 3, N_blocks = 20, format = "pairwise")

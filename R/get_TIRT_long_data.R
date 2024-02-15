@@ -1,11 +1,10 @@
-#' Convert the TIRT pairwise/rank response data into long format, compatible with the thurstonianIRT package
+#' Convert the TIRT Pairwise/Rank Response Data into Long Format Compatible with the thurstonianIRT Package
 #' 
 #' 
-#' @description XX
-#' 
-#' @usage  XX
+#' @description To estimate the TIRT model using the thurstonianIRT Package, the pairwise/rank data needs to 
+#' be converted into long format. Current function serves as that purpose.
 #'
-#' @param block_info  Information data frame related to keying, dimension, and ID of each item
+#' @param block_info  Information data frame related to keying, dimension, and ID of each item in each block
 #'
 #' @param response_data  TIRT pairwise/rank response data. 
 #' 
@@ -20,20 +19,26 @@
 #' \code{item_name}: What is the name of this item? 
 #' \code{trait_name}: Which trait does this item belong to?
 #' \code{sign_name}: What is the keying of this item?
+#' 
+#' @param verbose Logical. Should warning message be displayed?
 #'
 #' @details
 #' This function is essentially a wrapper of \code{thurstonianIRT::make_TIRT_data()}
 #' to allow more functionalities to be incorporated in a single function.
 #'
-#' @returns A long format dataframe that is compatible with subsequent analyses using the thurstonianIRT package
+#' @returns A long format data frame that is compatible with subsequent analyses using the thurstonianIRT package
 #'
-#' @seealso thurstonianIRT::set_blocks_from_df, thurstonianIRT::make_TIRT_data
+#' @seealso \code{thurstonianIRT::set_blocks_from_df()}, \code{thurstonianIRT::make_TIRT_data()}
 #' @author Mengtong Li
 #'
 #' @import thurstonianIRT
 #' 
-#' @examples TO BE DONE
-#' 
+#' @examples 
+#' ## See example in convert_to_TIRT_response() for FC_resp
+#' ## This example is just for demonstrative purposes showing how the long format data would look like.
+#' \dontrun{get_TIRT_long_data(block_info = triplet_block_info,
+#'                             response_data = FC_resp[,c(1:15)], response_varname = build_TIRT_var_names("i", 3, 5, format = "pairwise"),
+#'                             trait_name = "Factor", sign_name = "Keying")}
 #' 
 #' @export
 #'
@@ -56,10 +61,14 @@ get_TIRT_long_data <- function(block_info,
                                # Which column indicates item dimension?
                                trait_name = "Factor", 
                                # Which column indicates item keying?
-                               sign_name = "Reversed") {
-  warning("We assume that you have already re-ordered the rows in block_info
-        so that the first row represents the information of the first item in your FC scale.
-        Ensure that you have already done so before using this function!")
+                               sign_name = "Reversed",
+                               verbose = TRUE) {
+  if (verbose) {
+    warning("We assume that you have already re-ordered the rows in block_info
+             so that the first row represents the information of the first item in your FC scale.
+             Ensure that you have already done so before using this function!")
+  }
+
   block_info_response <- set_blocks_from_df(data = block_info,
                                             blocks = block_name,
                                             items = item_name,
