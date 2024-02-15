@@ -64,3 +64,6 @@ NeedsCompilation: no
 Packaged: 2021-06-04 15:53:59 UTC; LENOVO
 Repository: CRAN
 RoxygenNote: 7.2.3
+Depends: 
+    R (>= 2.10)
+LazyData: true
