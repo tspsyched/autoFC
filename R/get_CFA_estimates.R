@@ -73,7 +73,7 @@ get_CFA_estimates <- function(response_data, fit_model, item_names) {
     filter(op == "~1" & (lhs %in% item_names))
   item_residuals <- parameterEstimates(fit_object) %>% 
     filter(op == "~~" & (lhs %in% item_names) & (lhs == rhs))
-  lv_covariances <- as.matrix(inspect(fit_object, "cor.lv"))
+  lv_covariances <- as.matrix(inspect(fit_object, "cov.lv"))
   
   return(list(loadings = item_loadings, intercepts = item_intercepts,
               residuals = item_residuals, covariances = lv_covariances, model_fit = fit_object))     
