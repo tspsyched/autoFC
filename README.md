@@ -76,11 +76,15 @@ Detailed descriptions of all functions and other functions that are not listed h
 
 We also recently published a paper (Li et al., 2024) discussing the issues related to the development of forced-choice scales, which also includes a detailed tutorial on how to construct FC scales using these latest functionalities of the *autoFC* package. Users are also encouraged to refer to this paper for further details.
 
+## Citations
+Li, M., Zhang, B., Li, L., Sun, T., & Brown, A., (2024). Mixed-Keying or Desirability-Matching in the Construction of Forced-Choice Measures? An Empirical Investigation and Practical Recommendations. *Organizational Research Methods*. https://doi.org/10.1177/10944281241229784
 
-## References
+Li, M., Sun, T., & Zhang, B. (2022). autoFC: An R Package for Automatic Item Pairing in Forced-Choice Test Construction. Applied Psychological Measurement, 46(1), 70-72. https://doi.org/10.1177/01466216211051726
+
+## Additional References
 Brown, A., & Maydeu-Olivares, A. (2011). Item response modeling of forced-choice questionnaires. *Educational and Psychological Measurement, 71*(3), 460-502. https://doi.org/10.1177/0013164410375112
 
 Bürkner, P. C. (2019). thurstonianIRT: Thurstonian IRT models in R. *Journal of Open Source Software, 4*(42), 1662. https://doi.org/10.21105/joss.01662
 
-Li, M., Zhang, B., Li, L., Sun, T., & Brown, A., (2024). Mixed-Keying or Desirability-Matching in the Construction of Forced-Choice Measures? An Empirical Investigation and Practical Recommendations. *Organizational Research Methods*. https://doi.org/10.1177/10944281241229784
+
 
