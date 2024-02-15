@@ -2,9 +2,14 @@
 % Please edit documentation in R/build_TIRT_var_names.R
 \name{build_TIRT_var_names}
 \alias{build_TIRT_var_names}
-\title{Automatically build variable names for the pairwise/rank responses in the TIRT model}
+\title{Build Variable Names for the Pairwise/Rank Responses in the TIRT Model}
 \usage{
-TODO
+build_TIRT_var_names(
+  item_name = "i",
+  block_size,
+  N_blocks,
+  format = "pairwise"
+)
 }
 \arguments{
 \item{item_name}{The prefix you want to have for your response variables.}
@@ -17,16 +22,21 @@ TODO
 A vector of variable names
 }
 \description{
-TODO
+This function builds the variable names that corresponds to
+the pairwise comparisons or ranks among items within each block.
 }
 \details{
-TODO
+Choose the correct \code{item_name} so that they are consistent with the item names
+in the data frame storing information of the items.
 }
 \examples{
 build_var_names("i", block_size = 3, N_blocks = 20, format = "pairwise")
 build_var_names("i", block_size = 5, N_blocks = 12, format = "ranks")
 
 
+}
+\seealso{
+\code{get_TIRT_long_data()}
 }
 \author{
 Mengtong Li

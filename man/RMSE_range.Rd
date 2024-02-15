@@ -2,9 +2,9 @@
 % Please edit documentation in R/RMSE_range.R
 \name{RMSE_range}
 \alias{RMSE_range}
-\title{Calculate the overall RMSE of the trait scores, or the RMSE in a certain trait score range}
+\title{Calculate the Overall RMSE of the Trait Scores, or the RMSE in a Certain Trait Score Range}
 \usage{
-TO BE DONE
+RMSE_range(true_scores, estimated_scores, range_breaks = NA)
 }
 \arguments{
 \item{true_scores}{Actual trait scores}
@@ -14,16 +14,19 @@ TO BE DONE
 \item{range_breaks}{A numeric vector. Specifies which trait scores ranges will the RMSE be calculated}
 }
 \value{
-TO BE DONE
+If \code{range_breaks} is not specified, an overall RMSE numeric value will be returned;
+else, a named list showing the RMSE in each score range will be returned.
 }
 \description{
-TO BE DONE
+This function is also for diagnostic purposes, examining which interval on the
+latent trait continuum does the FC scale demonstrate the best measurement accuracy.
 }
 \details{
 TO BE DONE
 }
 \examples{
-TO BE DONE
+RMSE_range(rnorm(100), rnorm(100))
+RMSE_range(rnorm(100), rnorm(100), range_breaks = c(-3, -2, -1, 0, 1, 2, 3))
 
 }
 \author{

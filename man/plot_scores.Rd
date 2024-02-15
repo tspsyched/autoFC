@@ -2,9 +2,9 @@
 % Please edit documentation in R/plot_scores.R
 \name{plot_scores}
 \alias{plot_scores}
-\title{Scatter plot for true vs estimated scores, true score vs absolute error, etc.}
+\title{Scatter Plot for True vs Estimated Scores, True Score vs Absolute Error, etc.}
 \usage{
-TO BE DONE
+plot_scores(x_scores, y_scores, type = "simple", ...)
 }
 \arguments{
 \item{x_scores}{Scores to be plotted on the x axis}
@@ -13,19 +13,22 @@ TO BE DONE
 
 \item{type}{Which type of plots is plotted? Can be \code{"simple"} for simple x-y plot, or \code{"abs.diff"}
 for plotting absolute difference of (y-x) vs x.}
+
+\item{...}{Other parameters used in \code{plot()}}
 }
 \value{
 A scatter plot
 }
 \description{
-TO BE DONE
+This function is a simple plot for diagnostic purposes examining
+the performance of the FC scale based on simulated data.
 }
 \details{
 This is only a very crude plot function extending \code{plot()} for demonstrative purposes.
 Users are free to develop their own versions of plotting.
 }
 \examples{
-TO BE DONE
+plot_scores(rnorm(100), rnorm(100))
 
 }
 \author{

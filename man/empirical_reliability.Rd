@@ -2,7 +2,8 @@
 % Please edit documentation in R/empirical_reliability.R
 \name{empirical_reliability}
 \alias{empirical_reliability}
-\title{Calculate the empirical reliability of each latent trait following the formula in Brown & Maydeu-Olivares (2018).}
+\title{Calculate the Empirical Reliability of the Latent Trait Scores,
+Following the Formula in Brown & Maydeu-Olivares (2018).}
 \usage{
 TO BE DONE
 }
@@ -20,11 +21,16 @@ A numeric vector containing empirical reliability estimates, ordered the same as
 TO BE DONE
 }
 \details{
-TO BE DONE
+For trait scores estimated using item response theory models, a suitable reliability estimate
+is empirical reliability, which provides a summary estimate on how reliable the trait scores are "as a whole".
 }
 \examples{
-TO BE DONE
+\dontrun{empirical_reliability(dataset, c("Trait1", "Trait2", "Trait3"), c("se1", "se2", "se3"))}
 
+}
+\references{
+Brown, A., & Maydeu-Olivares, A. (2018). Ordinal factor analysis of graded-preference questionnaire data. 
+\emph{Structural Equation Modeling: A Multidisciplinary Journal, 25}(4), 516-529. https://doi.org/10.1080/10705511.2017.1392247
 }
 \author{
 Mengtong Li

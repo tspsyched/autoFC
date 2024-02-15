@@ -2,12 +2,26 @@
 % Please edit documentation in R/get_TIRT_long_data.R
 \name{get_TIRT_long_data}
 \alias{get_TIRT_long_data}
-\title{Convert the TIRT pairwise/rank response data into long format, compatible with the thurstonianIRT package}
+\title{Convert the TIRT Pairwise/Rank Response Data into Long Format Compatible with the thurstonianIRT Package}
 \usage{
-XX
+get_TIRT_long_data(
+  block_info,
+  response_data,
+  response_varname,
+  format = "pairwise",
+  partial = FALSE,
+  direction = "larger",
+  family = "bernoulli",
+  range = c(0, 1),
+  block_name = "Block",
+  item_name = "ID",
+  trait_name = "Factor",
+  sign_name = "Reversed",
+  verbose = TRUE
+)
 }
 \arguments{
-\item{block_info}{Information data frame related to keying, dimension, and ID of each item}
+\item{block_info}{Information data frame related to keying, dimension, and ID of each item in each block}
 
 \item{response_data}{TIRT pairwise/rank response data.}
 
@@ -22,24 +36,30 @@ the following information of each item:
 \code{item_name}: What is the name of this item? 
 \code{trait_name}: Which trait does this item belong to?
 \code{sign_name}: What is the keying of this item?}
+
+\item{verbose}{Logical. Should warning message be displayed?}
 }
 \value{
-A long format dataframe that is compatible with subsequent analyses using the thurstonianIRT package
+A long format data frame that is compatible with subsequent analyses using the thurstonianIRT package
 }
 \description{
-XX
+To estimate the TIRT model using the thurstonianIRT Package, the pairwise/rank data needs to 
+be converted into long format. Current function serves as that purpose.
 }
 \details{
 This function is essentially a wrapper of \code{thurstonianIRT::make_TIRT_data()}
 to allow more functionalities to be incorporated in a single function.
 }
 \examples{
-TO BE DONE
-
+## See example in convert_to_TIRT_response() for FC_resp
+## This example is just for demonstrative purposes showing how the long format data would look like.
+\dontrun{get_TIRT_long_data(block_info = triplet_block_info,
+                            response_data = FC_resp[,c(1:15)], response_varname = build_TIRT_var_names("i", 3, 5, format = "pairwise"),
+                            trait_name = "Factor", sign_name = "Keying")}
 
 }
 \seealso{
-thurstonianIRT::set_blocks_from_df, thurstonianIRT::make_TIRT_data
+\code{thurstonianIRT::set_blocks_from_df()}, \code{thurstonianIRT::make_TIRT_data()}
 }
 \author{
 Mengtong Li
