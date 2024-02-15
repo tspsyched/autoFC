@@ -37,5 +37,5 @@ fit_TIRT_mplus_new <- function(data, ...)
   fit$results$trait_scores <- trait_scores
   fit$results$trait_scores_se <- trait_scores_se
   class(fit) <- c("mplusObjectTIRT", class(fit))
-  # TIRTfit(fit, data)
+  TIRTfit(fit, data)
 }
