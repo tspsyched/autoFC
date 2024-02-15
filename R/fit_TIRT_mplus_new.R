@@ -1,4 +1,4 @@
-fit_TIRT_mplus_new <- function(data, ...)
+fit_TIRT_mplus_new <- function(data, remove_file, ...)
 {
   file_name <- glue::glue_collapse(sample(0:9, 10, TRUE))
   mplus_data <- make_sem_data(data)
@@ -11,10 +11,13 @@ fit_TIRT_mplus_new <- function(data, ...)
   fit <- MplusAutomation::mplusModeler(mplus_object, modelout = inp_file,
                                        run = 1L, writeData = "always", quiet = FALSE)
   fit$model_code <- readChar(inp_file, file.info(inp_file)$size)
-  # unlink(inp_file)
-  # unlink(paste0(file_name, ".out"))
-  # unlink(gsub("\"", "", fit$results$input$data$file, fixed = TRUE))
-  # unlink(fit$results$savedata_info$fileName)
+  if (remove_file) {
+       unlink(inp_file)
+       unlink(paste0(file_name, ".out"))
+       unlink(gsub("\"", "", fit$results$input$data$file, fixed = TRUE))
+       unlink(fit$results$savedata_info$fileName)
+    }
+
   npersons <- attr(data, "npersons")
   traits <- attr(data, "traits")
   savedata <- fit$results[["savedata"]]
