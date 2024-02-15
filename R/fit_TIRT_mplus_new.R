@@ -2,7 +2,7 @@ fit_TIRT_mplus_new <- function(data, ...)
 {
   file_name <- glue::glue_collapse(sample(0:9, 10, TRUE))
   mplus_data <- make_sem_data(data)
-  mplus_model <- make_mplus_code(data, eta_file = paste0(file_name,
+  mplus_model <- make_mplus_code_new(data, eta_file = paste0(file_name,
                                                          ".csv"), ...)
   mplus_object <- suppressMessages(do.call(MplusAutomation::mplusObject,
                                            c(mplus_model, list(rdata = mplus_data))))
