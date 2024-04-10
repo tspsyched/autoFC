@@ -62,7 +62,7 @@ get_TIRT_long_data <- function(block_info,
                                trait_name = "Factor", 
                                # Which column indicates item keying?
                                sign_name = "Reversed",
-                               verbose = TRUE) {
+                               verbose = FALSE) {
   if (verbose) {
     warning("We assume that you have already re-ordered the rows in block_info
              so that the first row represents the information of the first item in your FC scale.
