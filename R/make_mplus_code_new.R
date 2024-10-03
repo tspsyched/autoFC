@@ -38,7 +38,7 @@ make_mplus_code_new <- function (data, iter = 2000, eta_file = "eta.csv")
   }
   mplus_loadings <- collapse_default(unlist(mplus_loadings), "\n")
   mplus_fix_factor_variances <- collapse_default("trait", traits, "@1;\n")
-  mplus_fix_factor_means <- collapse_default("[trait", traits,"@0];")
+  mplus_fix_factor_means <- collapse_default("[trait", traits,"@0];\n")
   mplus_factor_correlations <- collapse_default(sapply(1:(ntraits - 
                                                     1), function(i) paste0("trait", i, " WITH\n  ", paste0("trait", 
                                                                                                            (i + 1):ntraits, "*0", collapse = "\n  "), ";\n")))
