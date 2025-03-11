@@ -74,7 +74,7 @@ fit_TIRT_model <- function(data_TIRT, method = "lavaan", lavaan_estimator = "WLS
   FC_results <- list()
   
   if (method == "lavaan") {
-    fit_TIRT <- fit_TIRT_lavaan(data_TIRT, estimator = lavaan_estimator)
+    fit_TIRT <- fit_TIRT_lavaan(data_TIRT, estimator = lavaan_estimator, verbose = verbose)
     traits_TIRT <- predict(fit_TIRT, newdata = data_TIRT)  
   }
   else if (method == "mplus") {
