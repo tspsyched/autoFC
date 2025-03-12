@@ -283,7 +283,7 @@ sa_pairing_generalized <- function(block, total_items, Temperature, eta_Temperat
         # 2.1 Pick an unused item and a block. Calculate the energy for this block.
         unused_items <- setdiff(seq(1:total_items), block)
         sample_index <- sample(nrow(block),1)
-        sample_block <- block[sample_index,]
+        sample_block <- block[sample_index,,drop=FALSE]
         sample_energy <- ifelse(!use_IIA, cal_block_energy(sample_block, item_chars, weights, FUN),
                                 cal_block_energy_with_iia(sample_block, item_chars, weights, FUN, rater_chars, iia_weights))
 
@@ -311,7 +311,7 @@ sa_pairing_generalized <- function(block, total_items, Temperature, eta_Temperat
       else {
         # 2.4 Or we pick several blocks and exchange their items, like what is done when all items are used.
         sample_index <- sample(1:nrow(block), n_exchange)
-        sample_block <- block[sample_index,]
+        sample_block <- block[sample_index,,drop=FALSE]
         sample_energy <- ifelse(!use_IIA, cal_block_energy(sample_block, item_chars, weights, FUN),
                                 cal_block_energy_with_iia(sample_block, item_chars, weights, FUN, rater_chars, iia_weights))
 
