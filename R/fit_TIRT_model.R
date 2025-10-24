@@ -69,7 +69,7 @@
 #'
 
 
-fit_TIRT_model <- function(data_TIRT, method = "lavaan", lavaan_estimator = "WLSMV", 
+fit_TIRT_model <- function(data_TIRT, method = "lavaan", lavaan_estimator = "WLSMV", filename = NULL,
                            stan_cores = 4, chains = 4, iter = 2000, verbose = TRUE, remove_file = FALSE) {
   FC_results <- list()
   
@@ -80,7 +80,7 @@ fit_TIRT_model <- function(data_TIRT, method = "lavaan", lavaan_estimator = "WLS
   else if (method == "mplus") {
     # warning("Due to the mechanics Mplus handles its input syntax, the input files generated here might not be correctly read by Mplus. We recommend using the Excel Macro developed by Brown & Maydeu-Olivares (2012) for generating Mplus syntax if you wish to use Mplus for estimating the TIRT model.")
     # print("Fitting TIRT")
-    fit_TIRT <- fit_TIRT_mplus_new(data_TIRT, remove_file)
+    fit_TIRT <- fit_TIRT_mplus_new(data_TIRT, remove_file, filename)
     # print("Predicting traits")
     # print(fit_TIRT)
     traits_TIRT <- predict(fit_TIRT)           
@@ -113,3 +113,4 @@ fit_TIRT_model <- function(data_TIRT, method = "lavaan", lavaan_estimator = "WLS
   
   return(FC_results)
 }
+
