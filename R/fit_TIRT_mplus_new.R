@@ -1,6 +1,6 @@
 fit_TIRT_mplus_new <- function(data, remove_file, filename = NULL, ...)
 {
-  if (is.null(filename) {
+  if (is.null(filename)) {
       file_name <- glue::glue_collapse(sample(0:9, 10, TRUE))
   }
   else {
@@ -47,4 +47,5 @@ fit_TIRT_mplus_new <- function(data, remove_file, filename = NULL, ...)
   class(fit) <- c("mplusObjectTIRT", class(fit))
   TIRTfit(fit, data)
 }
+
 
