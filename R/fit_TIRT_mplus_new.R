@@ -1,6 +1,11 @@
-fit_TIRT_mplus_new <- function(data, remove_file, ...)
+fit_TIRT_mplus_new <- function(data, remove_file, filename = NULL, ...)
 {
-  file_name <- glue::glue_collapse(sample(0:9, 10, TRUE))
+  if (is.null(filename) {
+      file_name <- glue::glue_collapse(sample(0:9, 10, TRUE))
+  }
+  else {
+      file_name = filename  
+  }
   mplus_data <- make_sem_data(data)
   mplus_model <- make_mplus_code_new(data, eta_file = paste0(file_name,
                                                          ".csv"), ...)
@@ -42,3 +47,4 @@ fit_TIRT_mplus_new <- function(data, remove_file, ...)
   class(fit) <- c("mplusObjectTIRT", class(fit))
   TIRTfit(fit, data)
 }
+
